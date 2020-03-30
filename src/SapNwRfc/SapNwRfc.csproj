@@ -1,10 +1,16 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFrameworks>net472;netstandard2.0;netstandard2.1</TargetFrameworks>
     <Title>SapNwRfc</Title>
     <Version>1.0.0.0</Version>
+    <Authors>Wouter Huysentruit</Authors>
+    <Company>Wouter Huysentruit</Company>
     <Description>SAP Netweaver RFC library for .NET Core and .NET Framework</Description>
+    <PackageProjectUrl>https://github.com/huysentruitw/SapNwRfc</PackageProjectUrl>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <RepositoryType>git</RepositoryType>
+    <RepositoryUrl>https://github.com/huysentruitw/SapNwRfc</RepositoryUrl>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <CodeAnalysisRuleSet>..\..\ca.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
