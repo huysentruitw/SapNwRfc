@@ -2,7 +2,7 @@
 
 [![Build status](https://ci.appveyor.com/api/projects/status/6yd37vurchtbeb6c/branch/master?svg=true)](https://ci.appveyor.com/project/huysentruitw/sapnwrfc/branch/master)
 
-This library is allows you to call SAP NetWeaver RFC functions for .NET Framework and .NET Core. 
+This library allows you to call SAP NetWeaver RFC functions from .NET Framework and .NET Core. 
 
 ## Get it on [NuGet](https://www.nuget.org/packages/SapNwRfc/)
 
