@@ -6,6 +6,8 @@ This library allows you to call SAP NetWeaver RFC functions from .NET Framework 
 
 Supported operating systems: Windows, Linux and macOS.
 
+Also supports connection pooling for more complex applications, see [below](#connection-pooling).
+
 ## Get it on [NuGet](https://www.nuget.org/packages/SapNwRfc/)
 
     dotnet add package SapNwRfc
@@ -121,26 +123,6 @@ class SomeFunctionResultItem
 }
 ```
 
-## Input and output mapping
-
-Input and output models used in function calls are mapped to and from SAP RFC parameter types by convention. In case the property name of the model differs from the SAP RFC parameter name, the `[SapName]`-attribute can be used.
-
-For each input and output model type, the library builds and caches a mapping function using expression trees.
-
-SAP RFC parameter types don't have to be specified as they're converted by convention. Here's an overview of supported type mappings:
-
-| C# type    | SAP RFC type      | Remarks
-|:---------- |:----------------- |:---
-| `int`      | RFCTYPE_INT       | 4-byte integer
-| `long`     | RFCTYPE_INT8      | 8-byte integer
-| `double`   | RFCTYPE_FLOAT     | Floating point, double precision
-| `decimal`  | RFCTYPE_BCD       |
-| `string`   | RFCTYPE_CHAR      |
-| `DateTime` | RFCTYPE_DATE      | Only the day, month and year value is used
-| `TimeSpan` | RFCTYPE_TIME      | Only the hour, minute and second value is used
-| `T`        | RFCTYPE_STRUCTURE | Structures are constructed from nested objects (T) in the input or output model
-| `Array<T>` | RFCTYPE_TABLE     | Tables are constructed from arrays of nested objects (T) in the input or output model
-
 ## Connection String parameters
 
 | Field                        | SAP Field
@@ -192,3 +174,64 @@ SAP RFC parameter types don't have to be specified as they're converted by conve
 | AbapDebug                    | ABAP_DEBUG
 | LogonCheck                   | LCHECK
 | Language                     | LANG
+
+## Input and output mapping
+
+Input and output models used in function calls are mapped to and from SAP RFC parameter types by convention. In case the property name of the model differs from the SAP RFC parameter name, the `[SapName]`-attribute can be used.
+
+For each input and output model type, the library builds and caches a mapping function using expression trees.
+
+SAP RFC parameter types don't have to be specified as they're converted by convention. Here's an overview of supported type mappings:
+
+| C# type    | SAP RFC type      | Remarks
+|:---------- |:----------------- |:---
+| `int`      | RFCTYPE_INT       | 4-byte integer
+| `long`     | RFCTYPE_INT8      | 8-byte integer
+| `double`   | RFCTYPE_FLOAT     | Floating point, double precision
+| `decimal`  | RFCTYPE_BCD       |
+| `string`   | RFCTYPE_CHAR      |
+| `DateTime` | RFCTYPE_DATE      | Only the day, month and year value is used
+| `TimeSpan` | RFCTYPE_TIME      | Only the hour, minute and second value is used
+| `T`        | RFCTYPE_STRUCTURE | Structures are constructed from nested objects (T) in the input or output model (see [example](#define-models-with-a-nested-structure))
+| `Array<T>` | RFCTYPE_TABLE     | Tables are constructed from arrays of nested objects (T) in the input or output model (see [example](#define-models-with-a-nested-table))
+
+## Connection pooling
+
+The usage examples above are for simple applications that execute functions one-by-one on a single connection.
+
+For more complex applications that require concurrency, connection pooling and retry on disconnect, it is advised to use the [`SapPooledConnection`](/src/SapNwRfc/Pooling/SapPooledConnection.cs) and [`SapConnectionPool`](/src/SapNwRfc/Pooling/SapConnectionPool.cs) from the `Pooling` namespace.
+
+See the [`SapConnectionPool`](/src/SapNwRfc/Pooling/SapConnectionPool.cs) class for configuration options. 
+
+### Connection pooling in ASP.NET Core application
+
+#### Register pool and pooled connection
+
+In the Startup.cs `ConfigureServices` method, add:
+
+```csharp
+services.AddSingleton<ISapConnectionPool>(_ => new SapConnectionPool(connectionString));
+services.AddScoped<ISapPooledConnection, SapPooledConnection>();
+```
+
+#### Resolve a connection from the pool
+
+In an `ApiController` or service, do:
+
+```csharp
+[ApiController]
+public class UserController : ControllerBase
+{
+    public UserController(ISapPooledConnection connection)
+    {
+        _connection = connection;
+    }
+
+    [HttpPost]
+    public IActionResult DoSomething(string action)
+    {
+        _connection.InvokeFunction("BAPI_SOME_FUNCTION_NAME");
+        return Ok();
+    } 
+}
+```
