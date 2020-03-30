@@ -129,7 +129,7 @@ namespace SapNwRfc
         public string SystemId { get; set; }
 
         [SapName("SYS_IDS")]
-        public string SystemIDs { get; set; }
+        public string SystemIds { get; set; }
 
         [SapName("X509CERT")]
         public string X509Certificate { get; set; }

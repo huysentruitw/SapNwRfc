@@ -4,6 +4,8 @@
 
 This library allows you to call SAP NetWeaver RFC functions from .NET Framework and .NET Core.
 
+Supported operating systems: Windows, Linux and macOS.
+
 ## Get it on [NuGet](https://www.nuget.org/packages/SapNwRfc/)
 
     dotnet add package SapNwRfc
@@ -128,7 +130,7 @@ For each input and output model type, the library builds and caches a mapping fu
 SAP RFC parameter types don't have to be specified as they're converted by convention. Here's an overview of supported type mappings:
 
 | C# type    | SAP RFC type      | Remarks
-|:---------- |:----------------- |:-------
+|:---------- |:----------------- |:---
 | `int`      | RFCTYPE_INT       | 4-byte integer
 | `long`     | RFCTYPE_INT8      | 8-byte integer
 | `double`   | RFCTYPE_FLOAT     | Floating point, double precision
@@ -138,3 +140,55 @@ SAP RFC parameter types don't have to be specified as they're converted by conve
 | `TimeSpan` | RFCTYPE_TIME      | Only the hour, minute and second value is used
 | `T`        | RFCTYPE_STRUCTURE | Structures are constructed from nested objects (T) in the input or output model
 | `Array<T>` | RFCTYPE_TABLE     | Tables are constructed from arrays of nested objects (T) in the input or output model
+
+## Connection String parameters
+
+| Field                        | SAP Field
+|:---------------------------- |:---
+| AppServerHost                | ASHOST
+| SncLibraryPath               | SNC_LIB
+| SncQop                       | SNC_QOP
+| Trace                        | TRACE
+| SapRouter                    | SAPROUTER
+| NoCompression                | NO_COMPRESSION
+| OnCharacterConversionError   | ON_CCE
+| CharacterFaultIndicatorToken | CFIT
+| MaxPoolSize                  | MAX_POOL_SIZE
+| PoolSize                     | POOL_SIZE
+| SncPartnerNames              | SNC_PARTNER_NAMES
+| IdleTimeout                  | IDLE_TIMEOUT
+| MaxPoolWaitTime              | MAX_POOL_WAIT_TIME
+| RegistrationCount            | REG_COUNT
+| PasswordChangeEnforced       | PASSWORD_CHANGE_ENFORCED
+| Name                         | NAME
+| RepositoryDestination        | REPOSITORY_DESTINATION
+| RepositoryUser               | REPOSITORY_USER
+| RepositoryPassword           | REPOSITORY_PASSWD
+| RepositorySncMyName          | REPOSITORY_SNC_MYNAME
+| RepositoryX509Certificate    | REPOSITORY_X509CERT
+| IdleCheckTime                | IDLE_CHECK_TIME
+| SncMyName                    | SNC_MYNAME
+| SncPartnerName               | SNC_PARTNERNAME
+| ProgramId                    | PROGRAM_ID
+| AppServerService             | ASSERV
+| MessageServerHost            | MSHOST
+| MessageServerService         | MSSERV
+| LogonGroup                   | GROUP
+| GatewayHost                  | GWHOST
+| GatewayService               | GWSERV
+| SystemNumber                 | SYSNR
+| User                         | USER
+| AliasUser                    | ALIAS_USER
+| SncMode                      | SNC_MODE
+| Client                       | CLIENT
+| Password                     | PASSWD
+| Codepage                     | CODEPAGE
+| PartnerCharSize              | PCS
+| SystemId                     | SYSID
+| SystemIds                    | SYS_IDS
+| X509Certificate              | X509CERT
+| SapSso2Ticket                | MYSAPSSO2
+| UseSapGui                    | USE_SAPGUI
+| AbapDebug                    | ABAP_DEBUG
+| LogonCheck                   | LCHECK
+| Language                     | LANG
