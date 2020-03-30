@@ -4,13 +4,13 @@
 
 This library is allows you to call SAP NetWeaver RFC functions from .NET Framework and .NET Core. 
 
-## Get it on NuGet
+## Get it on [NuGet](https://www.nuget.org/packages/SapNwRfc/)
 
-    PM> Install-Package SapNwRfc
+    dotnet add package SapNwRfc
     
 or
 
-    dotnet add package SapNwRfc
+    PM> Install-Package SapNwRfc
 
 ## Prerequisites
 
@@ -27,7 +27,7 @@ On Windows, the 7.50 version of the SAP binaries also require you to install the
 ```csharp
 string connectionString = "AppServerHost=MY_SERVER_HOST; SystemNumber=00; User=MY_SAP_USER; Password=SECRET; Client=100; Language=EN; PoolSize=5; Trace=8";
 
-using var connection = new SapConnection();
+using var connection = new SapConnection(connectionString);
 connection.Connect();
 ```
 
