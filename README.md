@@ -127,14 +127,14 @@ For each input and output model type, the library builds and caches a mapping fu
 
 SAP RFC parameter types don't have to be specified as they're converted by convention. Here's an overview of supported type mappings:
 
-C# type | SAP RFC type | Remarks
---- | --- | ---
-`int` | RFCTYPE_INT | 4-byte integer
-`long` | RFCTYPE_INT8 | 8-byte integer
-`double` | RFCTYPE_FLOAT | Floating point, double precision
-`decimal` | RFCTYPE_BCD |
-`string` | RFCTYPE_CHAR |
-`DateTime` | RFCTYPE_DATE | Only the day, month and year value is used
-`TimeSpan` | RFCTYPE_TIME | Only the hour, minute and second value is used
-`T` | RFCTYPE_STRUCTURE | Structures are constructed from nested objects (T) in the input or output model
-`Array<T>` | RFCTYPE_TABLE | Tables are constructed from arrays of nested objects (T) in the input or output model
+| C# type    | SAP RFC type      | Remarks
+|:---------- |:----------------- |:-------
+| `int`      | RFCTYPE_INT       | 4-byte integer
+| `long`     | RFCTYPE_INT8      | 8-byte integer
+| `double`   | RFCTYPE_FLOAT     | Floating point, double precision
+| `decimal`  | RFCTYPE_BCD       |
+| `string`   | RFCTYPE_CHAR      |
+| `DateTime` | RFCTYPE_DATE      | Only the day, month and year value is used
+| `TimeSpan` | RFCTYPE_TIME      | Only the hour, minute and second value is used
+| `T`        | RFCTYPE_STRUCTURE | Structures are constructed from nested objects (T) in the input or output model
+| `Array<T>` | RFCTYPE_TABLE     | Tables are constructed from arrays of nested objects (T) in the input or output model
