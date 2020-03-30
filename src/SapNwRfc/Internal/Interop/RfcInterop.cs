@@ -4,6 +4,7 @@ using System.Runtime.InteropServices;
 
 namespace SapNwRfc.Internal.Interop
 {
+    [ExcludeFromCodeCoverage]
     [SuppressMessage("StyleCop.CSharp.ReadabilityRules", "SA1124:Do not use regions", Justification = "Exception for interop class")]
     internal class RfcInterop
     {

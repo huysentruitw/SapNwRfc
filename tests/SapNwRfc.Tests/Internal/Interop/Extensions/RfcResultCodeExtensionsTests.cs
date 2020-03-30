@@ -54,5 +54,35 @@ namespace SapNwRfc.Tests.Internal.Interop.Extensions
                 .Which.Message.Should().Be("SAP RFC Error: RFC_CLOSED with message: Connection closed");
             beforeThrowActionMock.Verify(x => x(), Times.Once);
         }
+
+        [Fact]
+        public void ThrowOnError_CommunicationFailure_ShouldThrowSapCommunicationFailedException()
+        {
+            // Arrange
+            RfcResultCode resultCode = RfcResultCode.RFC_COMMUNICATION_FAILURE;
+            var errorInfo = new RfcErrorInfo { Message = "Failure error message" };
+
+            // Act
+            Action action = () => resultCode.ThrowOnError(errorInfo);
+
+            // Assert
+            action.Should().Throw<SapCommunicationFailedException>()
+                .WithMessage("SAP RFC Error: RFC_COMMUNICATION_FAILURE with message: Failure error message");
+        }
+
+        [Fact]
+        public void ThrowOnError_InvalidParameter_ShouldThrowSapInvalidParameterException()
+        {
+            // Arrange
+            RfcResultCode resultCode = RfcResultCode.RFC_INVALID_PARAMETER;
+            var errorInfo = new RfcErrorInfo { Message = "Wrong parameter message" };
+
+            // Act
+            Action action = () => resultCode.ThrowOnError(errorInfo);
+
+            // Assert
+            action.Should().Throw<SapInvalidParameterException>()
+                .WithMessage("SAP RFC Error: RFC_INVALID_PARAMETER with message: Wrong parameter message");
+        }
     }
 }

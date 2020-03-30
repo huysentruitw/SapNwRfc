@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using FluentAssertions;
 using Moq;
 using SapNwRfc.Exceptions;
@@ -258,6 +258,52 @@ namespace SapNwRfc.Tests
             // Assert
             function.Should().NotBeNull();
             _interopMock.Verify(x => x.CreateFunction(FunctionDescriptionHandle, out errorInfo), Times.Once);
+        }
+
+        [Fact]
+        public void IsValid_ConnectionHandleValid_ShouldReturnTrue()
+        {
+            // Arrange
+            var connection = new SapConnection(_interopMock.Object, new SapConnectionParameters());
+            int isValidValue = 1;
+            RfcErrorInfo errorInfo;
+            _interopMock
+                .Setup(x => x.OpenConnection(It.IsAny<RfcConnectionParameter[]>(), It.IsAny<uint>(), out errorInfo))
+                .Returns(SapConnectionHandle);
+            _interopMock
+                .Setup(x => x.IsConnectionHandleValid(SapConnectionHandle, out isValidValue, out errorInfo))
+                .Returns(RfcResultCode.RFC_OK);
+
+            connection.Connect();
+
+            // Arrange
+            var isValid = connection.IsValid;
+
+            // Assert
+            isValid.Should().BeTrue();
+        }
+
+        [Fact]
+        public void IsValid_ConnectionHandleInvalid_ShouldReturnFalse()
+        {
+            // Arrange
+            var connection = new SapConnection(_interopMock.Object, new SapConnectionParameters());
+            int isValidValue = 0;
+            RfcErrorInfo errorInfo;
+            _interopMock
+                .Setup(x => x.OpenConnection(It.IsAny<RfcConnectionParameter[]>(), It.IsAny<uint>(), out errorInfo))
+                .Returns(SapConnectionHandle);
+            _interopMock
+                .Setup(x => x.IsConnectionHandleValid(SapConnectionHandle, out isValidValue, out errorInfo))
+                .Returns(RfcResultCode.RFC_OK);
+
+            connection.Connect();
+
+            // Arrange
+            var isValid = connection.IsValid;
+
+            // Assert
+            isValid.Should().BeFalse();
         }
 
         [Fact]
