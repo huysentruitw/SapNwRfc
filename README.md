@@ -34,7 +34,7 @@ connection.Connect();
 ### Call function without input or output parameters
 
 ```csharp
-using var someFunction = connection.CreateFunction("ZBAPI_SOME_FUNCTION_NAME");
+using var someFunction = connection.CreateFunction("BAPI_SOME_FUNCTION_NAME");
 someFunction.Invoke();
 ```
 
@@ -47,7 +47,7 @@ class SomeFunctionParameters
     public string SomeField { get; set; }
 }
 
-using var someFunction = connection.CreateFunction("ZBAPI_SOME_FUNCTION_NAME");
+using var someFunction = connection.CreateFunction("BAPI_SOME_FUNCTION_NAME");
 someFunction.Invoke(new SomeFunctionParameters
 {
     SomeField = "Some value",
@@ -69,7 +69,7 @@ class SomeFunctionResult
     public string Abc { get; set; }
 }
 
-using var someFunction = connection.CreateFunction("ZBAPI_SOME_FUNCTION_NAME");
+using var someFunction = connection.CreateFunction("BAPI_SOME_FUNCTION_NAME");
 var result = someFunction.Invoke<SomeFunctionResult>(new SomeFunctionParameters
 {
     SomeField = "Some value",
