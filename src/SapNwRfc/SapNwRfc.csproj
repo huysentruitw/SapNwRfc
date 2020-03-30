@@ -4,7 +4,7 @@
     <TargetFrameworks>net472;netstandard2.0;netstandard2.1</TargetFrameworks>
     <Title>SapNwRfc</Title>
     <Version>1.0.0.0</Version>
-    <Description></Description>
+    <Description>SAP Netweaver RFC library for .NET Core and .NET Framework</Description>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <CodeAnalysisRuleSet>..\..\ca.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
