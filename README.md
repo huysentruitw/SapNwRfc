@@ -2,7 +2,7 @@
 
 [![Build status](https://ci.appveyor.com/api/projects/status/6yd37vurchtbeb6c/branch/master?svg=true)](https://ci.appveyor.com/project/huysentruitw/sapnwrfc/branch/master)
 
-This library allows you to call SAP NetWeaver RFC functions from .NET Framework and .NET Core. 
+This library allows you to call SAP NetWeaver RFC functions from .NET Framework and .NET Core.
 
 ## Get it on [NuGet](https://www.nuget.org/packages/SapNwRfc/)
 
@@ -77,3 +77,64 @@ var result = someFunction.Invoke<SomeFunctionResult>(new SomeFunctionParameters
 
 // Do something with result.Abc
 ```
+
+### Define models with a nested structure
+
+```csharp
+class SomeFunctionResult
+{
+    [SapName("RES_ABC")]
+    public string Abc { get; set; }
+
+    [SapName("RES_ADDR")]
+    public SomeFunctionResultItem Address { get; set; }
+}
+
+class SomeFunctionResultAddress
+{
+    [SapName("STREET")]
+    public string Street { get; set; }
+
+    [SapName("NR")]
+    public string Number { get; set; }
+}
+```
+
+### Define models with a nested table
+
+```csharp
+class SomeFunctionResult
+{
+    [SapName("RES_ABC")]
+    public string Abc { get; set; }
+
+    [SapName("RES_ITEMS")]
+    public SomeFunctionResultItem[] Items { get; set; }
+}
+
+class SomeFunctionResultItem
+{
+    [SapName("ITM_NAME")]
+    public string Name { get; set; }
+}
+```
+
+## Input and output mapping
+
+Input and output models used in function calls are mapped to and from SAP RFC parameter types by convention. In case the property name of the model differs from the SAP RFC parameter name, the `[SapName]`-attribute can be used.
+
+For each input and output model type, the library builds and caches a mapping function using expression trees.
+
+SAP RFC parameter types don't have to be specified as they're converted by convention. Here's an overview of supported type mappings:
+
+C# type | SAP RFC type | Remarks
+--- | --- | ---
+`int` | RFCTYPE_INT | 4-byte integer
+`long` | RFCTYPE_INT8 | 8-byte integer
+`double` | RFCTYPE_FLOAT | Floating point, double precision
+`decimal` | RFCTYPE_BCD |
+`string` | RFCTYPE_CHAR |
+`DateTime` | RFCTYPE_DATE | Only the day, month and year value is used
+`TimeSpan` | RFCTYPE_TIME | Only the hour, minute and second value is used
+`T` | RFCTYPE_STRUCTURE | Structures are constructed from nested objects (T) in the input or output model
+`Array<T>` | RFCTYPE_TABLE | Tables are constructed from arrays of nested objects (T) in the input or output model
