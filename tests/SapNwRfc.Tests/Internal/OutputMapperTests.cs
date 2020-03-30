@@ -226,8 +226,12 @@ namespace SapNwRfc.Tests.Internal
             _interopMock.Verify(
                 x => x.GetDate(DataHandle, "DATETIMEVALUE", It.IsAny<char[]>(), out errorInfo),
                 Times.Once);
+            _interopMock.Verify(
+                x => x.GetDate(DataHandle, "NULLABLEDATETIMEVALUE", It.IsAny<char[]>(), out errorInfo),
+                Times.Once);
             result.Should().NotBeNull();
             result.DateTimeValue.Should().Be(new DateTime(2020, 04, 05));
+            result.NullableDateTimeValue.Should().Be(new DateTime(2020, 04, 05));
         }
 
         [Theory]
@@ -251,15 +255,17 @@ namespace SapNwRfc.Tests.Internal
 
             // Assert
             _interopMock.Verify(
-                x => x.GetDate(DataHandle, "DATETIMEVALUE", It.IsAny<char[]>(), out errorInfo),
+                x => x.GetDate(DataHandle, "NULLABLEDATETIMEVALUE", It.IsAny<char[]>(), out errorInfo),
                 Times.Once);
             result.Should().NotBeNull();
-            result.DateTimeValue.Should().BeNull();
+            result.NullableDateTimeValue.Should().BeNull();
         }
 
         private sealed class DateTimeModel
         {
-            public DateTime? DateTimeValue { get; set; }
+            public DateTime DateTimeValue { get; set; }
+
+            public DateTime? NullableDateTimeValue { get; set; }
         }
 
         private delegate void GetTimeCallback(IntPtr dataHandle, string name, char[] buffer, out RfcErrorInfo errorInfo);
@@ -285,8 +291,12 @@ namespace SapNwRfc.Tests.Internal
             _interopMock.Verify(
                 x => x.GetTime(DataHandle, "TIMESPANVALUE", It.IsAny<char[]>(), out errorInfo),
                 Times.Once);
+            _interopMock.Verify(
+                x => x.GetTime(DataHandle, "NULLABLETIMESPANVALUE", It.IsAny<char[]>(), out errorInfo),
+                Times.Once);
             result.Should().NotBeNull();
             result.TimeSpanValue.Should().Be(new TimeSpan(12, 34, 56));
+            result.NullableTimeSpanValue.Should().Be(new TimeSpan(12, 34, 56));
         }
 
         [Theory]
@@ -310,15 +320,17 @@ namespace SapNwRfc.Tests.Internal
 
             // Assert
             _interopMock.Verify(
-                x => x.GetTime(DataHandle, "TIMESPANVALUE", It.IsAny<char[]>(), out errorInfo),
+                x => x.GetTime(DataHandle, "NULLABLETIMESPANVALUE", It.IsAny<char[]>(), out errorInfo),
                 Times.Once);
             result.Should().NotBeNull();
-            result.TimeSpanValue.Should().BeNull();
+            result.NullableTimeSpanValue.Should().BeNull();
         }
 
         private sealed class TimeSpanModel
         {
-            public TimeSpan? TimeSpanValue { get; set; }
+            public TimeSpan TimeSpanValue { get; set; }
+
+            public TimeSpan? NullableTimeSpanValue { get; set; }
         }
 
         [Fact]

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
@@ -9,6 +10,8 @@ using SapNwRfc.Internal.Interop;
 
 namespace SapNwRfc.Internal
 {
+    [SuppressMessage("ReSharper", "AssignNullToNotNullAttribute", Justification = "Never null")]
+    [SuppressMessage("ReSharper", "PossibleNullReferenceException", Justification = "Never null")]
     internal static class OutputMapper
     {
         private static readonly ConcurrentDictionary<Type, Func<RfcInterop, IntPtr, object>> ExtractFuncsCache =
@@ -106,7 +109,7 @@ namespace SapNwRfc.Internal
                     .GetMethod(
                         name: nameof(TableField<object>.Extract),
                         types: new[] { typeof(RfcInterop), typeof(IntPtr), typeof(string) })
-                    ?.MakeGenericMethod(elementType);
+                    .MakeGenericMethod(elementType);
             }
             else
             {
@@ -115,13 +118,12 @@ namespace SapNwRfc.Internal
                     .GetMethod(
                         name: nameof(StructureField<object>.Extract),
                         types: new[] { typeof(RfcInterop), typeof(IntPtr), typeof(string) })
-                    ?.MakeGenericMethod(propertyInfo.PropertyType);
+                    .MakeGenericMethod(propertyInfo.PropertyType);
             }
 
             // ReSharper disable once PossibleNullReferenceException
             PropertyInfo rfcFieldValueProperty =
-                extractMethod.ReturnType.GetProperty("Value")
-                ?? throw new InvalidOperationException($"Value property not found on type {extractMethod.ReturnType.Name}");
+                extractMethod.ReturnType.GetProperty("Value");
 
             MemberExpression rfcFieldValue = Expression.Property(
                 Expression.Call(
