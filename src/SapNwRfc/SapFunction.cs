@@ -1,9 +1,12 @@
-﻿using System;
+using System;
 using SapNwRfc.Internal;
 using SapNwRfc.Internal.Interop;
 
 namespace SapNwRfc
 {
+    /// <summary>
+    /// Represents an SAP RFC function.
+    /// </summary>
     public sealed class SapFunction : ISapFunction
     {
         private readonly RfcInterop _interop;
@@ -37,6 +40,9 @@ namespace SapNwRfc
                 functionHandle: functionHandle);
         }
 
+        /// <summary>
+        /// Disposes the SAP RFC function. Disposing automatically frees the underlying resource tied to this remote function.
+        /// </summary>
         public void Dispose()
         {
             RfcResultCode resultCode = _interop.DestroyFunction(
@@ -46,6 +52,7 @@ namespace SapNwRfc
             resultCode.ThrowOnError(errorInfo);
         }
 
+        /// <inheritdoc cref="ISapFunction"/>
         public void Invoke()
         {
             RfcResultCode resultCode = _interop.Invoke(
@@ -56,6 +63,7 @@ namespace SapNwRfc
             resultCode.ThrowOnError(errorInfo);
         }
 
+        /// <inheritdoc cref="ISapFunction"/>
         public void Invoke(object input)
         {
             InputMapper.Apply(_interop, _functionHandle, input);
@@ -63,6 +71,7 @@ namespace SapNwRfc
             Invoke();
         }
 
+        /// <inheritdoc cref="ISapFunction"/>
         public TOutput Invoke<TOutput>()
         {
             Invoke();
@@ -70,22 +79,12 @@ namespace SapNwRfc
             return OutputMapper.Extract<TOutput>(_interop, _functionHandle);
         }
 
+        /// <inheritdoc cref="ISapFunction"/>
         public TOutput Invoke<TOutput>(object input)
         {
             Invoke(input);
 
             return OutputMapper.Extract<TOutput>(_interop, _functionHandle);
         }
-    }
-
-    public interface ISapFunction : IDisposable
-    {
-        void Invoke();
-
-        void Invoke(object input);
-
-        TOutput Invoke<TOutput>();
-
-        TOutput Invoke<TOutput>(object input);
     }
 }

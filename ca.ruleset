@@ -19,6 +19,5 @@
     <Rule Id="SA1600" Action="None" /><!-- Elements should be documented -->
     <Rule Id="SA1602" Action="None" /><!-- Enumeration items should be documented	-->
     <Rule Id="SA1633" Action="None" /><!-- The file header is missing or not located at the top of the file -->
-    <Rule Id="SA1652" Action="None" /><!-- Enable XML documentation output -->
   </Rules>
 </RuleSet>

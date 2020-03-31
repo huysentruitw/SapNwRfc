@@ -4,18 +4,29 @@ using SapNwRfc.Internal.Interop;
 
 namespace SapNwRfc
 {
+    /// <summary>
+    /// Represents an RFC connection to the SAP application server.
+    /// </summary>
     public sealed class SapConnection : ISapConnection
     {
         private readonly RfcInterop _interop;
         private readonly SapConnectionParameters _parameters;
         private IntPtr _rfcConnectionHandle = IntPtr.Zero;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="SapConnection"/> class with the given connection parameters.
+        /// </summary>
+        /// <param name="parameters">The connection parameters.</param>
         [ExcludeFromCodeCoverage]
         public SapConnection(SapConnectionParameters parameters)
             : this(new RfcInterop(), parameters)
         {
         }
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="SapConnection"/> class with the given connection string.
+        /// </summary>
+        /// <param name="connectionString">The connection string.</param>
         [ExcludeFromCodeCoverage]
         public SapConnection(string connectionString)
             : this(new RfcInterop(), SapConnectionParameters.Parse(connectionString))
@@ -29,11 +40,15 @@ namespace SapNwRfc
             _parameters = parameters;
         }
 
+        /// <summary>
+        /// Disposes the connection. Disposing automatically disconnects from the SAP application server.
+        /// </summary>
         public void Dispose()
         {
             Disconnect(disposing: true);
         }
 
+        /// <inheritdoc cref="ISapConnection"/>
         public void Connect()
         {
             RfcConnectionParameter[] interopParameters = _parameters.ToInterop();
@@ -46,6 +61,7 @@ namespace SapNwRfc
             errorInfo.ThrowOnError(beforeThrow: Clear);
         }
 
+        /// <inheritdoc cref="ISapConnection"/>
         public void Disconnect()
         {
             Disconnect(disposing: false);
@@ -66,6 +82,7 @@ namespace SapNwRfc
                 resultCode.ThrowOnError(errorInfo);
         }
 
+        /// <inheritdoc cref="ISapConnection"/>
         public bool IsValid
         {
             get
@@ -78,6 +95,7 @@ namespace SapNwRfc
             }
         }
 
+        /// <inheritdoc cref="ISapConnection"/>
         public bool Ping()
         {
             if (_rfcConnectionHandle == IntPtr.Zero)
@@ -90,6 +108,7 @@ namespace SapNwRfc
             return resultCode == RfcResultCode.RFC_OK;
         }
 
+        /// <inheritdoc cref="ISapConnection"/>
         public ISapFunction CreateFunction(string name)
         {
             IntPtr functionDescriptionHandle = _interop.GetFunctionDesc(
@@ -109,18 +128,5 @@ namespace SapNwRfc
         {
             _rfcConnectionHandle = IntPtr.Zero;
         }
-    }
-
-    public interface ISapConnection : IDisposable
-    {
-        void Connect();
-
-        void Disconnect();
-
-        bool IsValid { get; }
-
-        bool Ping();
-
-        ISapFunction CreateFunction(string name);
     }
 }

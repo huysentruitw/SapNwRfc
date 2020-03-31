@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
@@ -6,6 +6,9 @@ using System.Threading;
 
 namespace SapNwRfc.Pooling
 {
+    /// <summary>
+    /// The SAP Connection pool class.
+    /// </summary>
     public sealed class SapConnectionPool : ISapConnectionPool
     {
         private readonly SapConnectionParameters _connectionParameters;
@@ -19,6 +22,13 @@ namespace SapNwRfc.Pooling
 
         private int _openConnectionCount = 0;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="SapConnectionPool"/> class.
+        /// </summary>
+        /// <param name="connectionString">The connection string.</param>
+        /// <param name="poolSize">The size of the pool.</param>
+        /// <param name="connectionIdleTimeout">The idle timeout after which unused open connections are disposed. Defaults to 30 seconds.</param>
+        /// <param name="idleDetectionInterval">The interval at which to look for idling connections. Defaults to 1 second.</param>
         [ExcludeFromCodeCoverage]
         [SuppressMessage("ReSharper", "RedundantOverload.Global", Justification = "Public constructor should not expose connection factory")]
         public SapConnectionPool(
@@ -48,6 +58,9 @@ namespace SapNwRfc.Pooling
                 period: idleDetectionInterval ?? TimeSpan.FromSeconds(1));
         }
 
+        /// <summary>
+        /// Disposes the SAP Connection pool and all idling connections.
+        /// </summary>
         public void Dispose()
         {
             _timer.Dispose();
@@ -55,6 +68,7 @@ namespace SapNwRfc.Pooling
                 idleConnection.Connection.Dispose();
         }
 
+        /// <inheritdoc cref="ISapConnectionPool"/>
         [SuppressMessage("ReSharper", "InvertIf", Justification = "Don't change double-checked lock")]
         public ISapConnection GetConnection(CancellationToken cancellationToken = default)
         {
@@ -96,6 +110,7 @@ namespace SapNwRfc.Pooling
             }
         }
 
+        /// <inheritdoc cref="ISapConnectionPool"/>
         public void ReturnConnection(ISapConnection connection)
         {
             DateTime expiresAtUtc = DateTime.UtcNow + _connectionIdleTimeout;
@@ -103,6 +118,7 @@ namespace SapNwRfc.Pooling
             _idleConnectionSemaphore.Release();
         }
 
+        /// <inheritdoc cref="ISapConnectionPool"/>
         public void ForgetConnection(ISapConnection connection)
         {
             connection.Dispose();

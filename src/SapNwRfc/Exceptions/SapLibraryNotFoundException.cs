@@ -1,12 +1,19 @@
-﻿using System;
+using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 using System.Text;
 
 namespace SapNwRfc.Exceptions
 {
+    /// <summary>
+    /// Exception throw when the SAP library was not found.
+    /// </summary>
     public sealed class SapLibraryNotFoundException : Exception
     {
+        /// <summary>
+        /// Initializes a new instance of the <see cref="SapLibraryNotFoundException"/> class.
+        /// </summary>
+        /// <param name="innerException">The inner exception.</param>
         public SapLibraryNotFoundException(Exception innerException)
             : base(BuildMessage(), innerException)
         {

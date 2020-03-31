@@ -1,27 +1,41 @@
-﻿using System.Diagnostics.CodeAnalysis;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using SapNwRfc.Exceptions;
 
 namespace SapNwRfc.Pooling
 {
+    /// <summary>
+    /// Represents a pooled connection.
+    /// </summary>
     public sealed class SapPooledConnection : ISapPooledConnection
     {
         private readonly ISapConnectionPool _pool;
         private ISapConnection _connection;
         private bool _disposed = false;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="SapPooledConnection"/> class.
+        /// </summary>
+        /// <param name="pool">The connection pool.</param>
+        /// <param name="cancellationToken">The cancellation token.</param>
         public SapPooledConnection(ISapConnectionPool pool, CancellationToken cancellationToken = default)
         {
             _pool = pool;
             _connection = pool.GetConnection(cancellationToken);
         }
 
+        /// <summary>
+        /// Finalizes an instance of the <see cref="SapPooledConnection"/> class.
+        /// </summary>
         [ExcludeFromCodeCoverage]
         ~SapPooledConnection()
         {
             Dispose();
         }
 
+        /// <summary>
+        /// Returns the underlying <see cref="SapConnection"/> to the connection pool and make it available for reuse.
+        /// </summary>
         public void Dispose()
         {
             if (_disposed)
@@ -31,6 +45,7 @@ namespace SapNwRfc.Pooling
             _disposed = true;
         }
 
+        /// <inheritdoc cref="ISapPooledConnection"/>
         public void InvokeFunction(string name, CancellationToken cancellationToken = default)
         {
             try
@@ -50,6 +65,7 @@ namespace SapNwRfc.Pooling
             }
         }
 
+        /// <inheritdoc cref="ISapPooledConnection"/>
         public void InvokeFunction(string name, object input, CancellationToken cancellationToken = default)
         {
             try
@@ -69,6 +85,7 @@ namespace SapNwRfc.Pooling
             }
         }
 
+        /// <inheritdoc cref="ISapPooledConnection"/>
         public TOutput InvokeFunction<TOutput>(string name, CancellationToken cancellationToken = default)
         {
             try
@@ -88,6 +105,7 @@ namespace SapNwRfc.Pooling
             }
         }
 
+        /// <inheritdoc cref="ISapPooledConnection"/>
         public TOutput InvokeFunction<TOutput>(string name, object input, CancellationToken cancellationToken = default)
         {
             try
