@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Diagnostics.CodeAnalysis;
 using SapNwRfc.Internal.Interop;
 
@@ -40,9 +40,7 @@ namespace SapNwRfc.Internal.Fields
             if (resultCode != RfcResultCode.RFC_BUFFER_TOO_SMALL)
             {
                 resultCode.ThrowOnError(errorInfo);
-
-                if (stringLength == 0)
-                    return new StringField(name, string.Empty);
+                return new StringField(name, string.Empty);
             }
 
             var buffer = new char[stringLength + 1];
