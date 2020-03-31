@@ -27,8 +27,10 @@ namespace SapNwRfc.Internal
         }
 
         private static MethodInfo GetFieldApplyMethod()
-            => typeof(IField).GetMethod(nameof(IField.Apply), new[] { typeof(RfcInterop), typeof(IntPtr) })
-               ?? throw new SapException($"{nameof(IField)}.{nameof(IField.Apply)} not found");
+        {
+            Expression<Action<IField>> expression = field => field.Apply(default, default);
+            return ((MethodCallExpression)expression.Body).Method;
+        }
 
         private static Action<RfcInterop, IntPtr, object> BuildApplyAction(Type type)
         {
