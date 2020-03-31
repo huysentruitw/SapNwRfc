@@ -21,7 +21,7 @@ namespace SapNwRfc.Pooling
 
         [ExcludeFromCodeCoverage]
         [SuppressMessage("ReSharper", "RedundantOverload.Global", Justification = "Public constructor should not expose connection factory")]
-        internal SapConnectionPool(
+        public SapConnectionPool(
             string connectionString,
             int poolSize = 5,
             TimeSpan? connectionIdleTimeout = null,
