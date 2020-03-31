@@ -11,7 +11,7 @@ namespace SapNwRfc.Internal
 {
     internal static class InputMapper
     {
-        private static readonly Lazy<MethodInfo> RfcFieldApplyMethod = new Lazy<MethodInfo>(GetFieldApplyMethod);
+        private static readonly Lazy<MethodInfo> FieldApplyMethod = new Lazy<MethodInfo>(GetFieldApplyMethod);
 
         private static readonly ConcurrentDictionary<Type, Action<RfcInterop, IntPtr, object>> ApplyActionsCache =
             new ConcurrentDictionary<Type, Action<RfcInterop, IntPtr, object>>();
@@ -129,7 +129,7 @@ namespace SapNwRfc.Internal
             // instance.Apply(interopParameter, dataHandleParameter);
             return Expression.Call(
                 instance: fieldNewExpression,
-                method: RfcFieldApplyMethod.Value,
+                method: FieldApplyMethod.Value,
                 arguments: new[] { interopParameter, dataHandleParameter });
         }
     }
