@@ -124,6 +124,12 @@ class SomeFunctionResultItem
 }
 ```
 
+### Ensure the SAP RFC SDK binaries are present
+
+```csharp
+SapLibrary.EnsureLibraryPresent();
+```
+
 ## Connection String parameters
 
 | Field                        | SAP Field

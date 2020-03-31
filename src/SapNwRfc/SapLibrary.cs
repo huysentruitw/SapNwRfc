@@ -16,9 +16,26 @@ namespace SapNwRfc
         /// </summary>
         public static void EnsureLibraryPresent()
         {
+            GetVersion();
+        }
+
+        /// <summary>
+        /// Gets the SAP RFC library version.
+        /// </summary>
+        /// <returns>The SAP RFC library version.</returns>
+        public static SapLibraryVersion GetVersion()
+        {
             try
             {
-                new RfcInterop().GetVersion(out uint majorVersion, out uint minorVersion, out uint patchLevel);
+                RfcResultCode resultCode = new RfcInterop()
+                    .GetVersion(out uint majorVersion, out uint minorVersion, out uint patchLevel);
+
+                return new SapLibraryVersion
+                {
+                    Major = majorVersion,
+                    Minor = minorVersion,
+                    Patch = patchLevel,
+                };
             }
             catch (DllNotFoundException ex)
             {
