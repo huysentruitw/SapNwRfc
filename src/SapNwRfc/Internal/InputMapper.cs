@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Concurrent;
 using System.Linq;
 using System.Linq.Expressions;
@@ -11,7 +11,7 @@ namespace SapNwRfc.Internal
 {
     internal static class InputMapper
     {
-        private static readonly Lazy<MethodInfo> RfcFieldApplyMethod = new Lazy<MethodInfo>(GetRfcFieldApplyMethod);
+        private static readonly Lazy<MethodInfo> RfcFieldApplyMethod = new Lazy<MethodInfo>(GetFieldApplyMethod);
 
         private static readonly ConcurrentDictionary<Type, Action<RfcInterop, IntPtr, object>> ApplyActionsCache =
             new ConcurrentDictionary<Type, Action<RfcInterop, IntPtr, object>>();
@@ -26,7 +26,7 @@ namespace SapNwRfc.Internal
             applyAction(interop, dataHandle, input);
         }
 
-        private static MethodInfo GetRfcFieldApplyMethod()
+        private static MethodInfo GetFieldApplyMethod()
             => typeof(IField).GetMethod(nameof(IField.Apply), new[] { typeof(RfcInterop), typeof(IntPtr) })
                ?? throw new SapException($"{nameof(IField)}.{nameof(IField.Apply)} not found");
 
