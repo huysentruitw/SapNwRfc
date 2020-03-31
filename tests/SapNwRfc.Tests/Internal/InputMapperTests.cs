@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Linq;
 using AutoFixture;
 using FluentAssertions;
@@ -275,6 +275,17 @@ public sealed class InputMapperTests
             // Assert
             _interopMock.Verify(x => x.GetStructure(DataHandle, "STRUCTURE", out structHandle, out errorInfo), Times.Once);
             _interopMock.Verify(x => x.SetInt(structHandle, "VALUE", 224, out errorInfo), Times.Once);
+        }
+
+        [Fact]
+        public void Apply_UnknownTypeThatCannotBeConstructed_ShouldThrowException()
+        {
+            // Arrange & Act
+            Action action = () => InputMapper.Apply(_interopMock.Object, DataHandle, new { UnknownType = 1.0f });
+
+            // Assert
+            action.Should().Throw<InvalidOperationException>()
+                .WithMessage("No matching field constructor found");
         }
 
         private sealed class ArrayElement

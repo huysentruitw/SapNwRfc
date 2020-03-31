@@ -1,8 +1,11 @@
+using System.Diagnostics.CodeAnalysis;
+
 namespace SapNwRfc
 {
     /// <summary>
     /// Represents a SAP RFC library version.
     /// </summary>
+    [ExcludeFromCodeCoverage]
     public sealed class SapLibraryVersion
     {
         /// <summary>

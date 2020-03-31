@@ -68,94 +68,61 @@ namespace SapNwRfc.Internal
             // var value = propertyInfo.GetValue(input);
             Expression property = Expression.Property(inputParameter, propertyInfo);
 
-            NewExpression fieldNewExpression = null;
+            ConstructorInfo fieldConstructor = null;
             if (propertyInfo.PropertyType == typeof(string))
             {
                 // new RfcStringField(name, (string)value);
-                ConstructorInfo constructor =
-                    typeof(StringField).GetConstructor(new[] { typeof(string), typeof(string) })
-                    ?? throw new InvalidOperationException("Constructor not found");
-
-                fieldNewExpression = Expression.New(constructor, name, property);
+                fieldConstructor = typeof(StringField).GetConstructor(new[] { typeof(string), typeof(string) });
             }
             else if (propertyInfo.PropertyType == typeof(int))
             {
                 // new RfcIntField(name, (int)value);
-                ConstructorInfo constructor =
-                    typeof(IntField).GetConstructor(new[] { typeof(string), typeof(int) })
-                    ?? throw new InvalidOperationException("Constructor not found");
-
-                fieldNewExpression = Expression.New(constructor, name, property);
+                fieldConstructor = typeof(IntField).GetConstructor(new[] { typeof(string), typeof(int) });
             }
             else if (propertyInfo.PropertyType == typeof(long))
             {
                 // new RfcLongField(name, (long)value);
-                ConstructorInfo constructor =
-                    typeof(LongField).GetConstructor(new[] { typeof(string), typeof(long) })
-                    ?? throw new InvalidOperationException("Constructor not found");
-
-                fieldNewExpression = Expression.New(constructor, name, property);
+                fieldConstructor = typeof(LongField).GetConstructor(new[] { typeof(string), typeof(long) });
             }
             else if (propertyInfo.PropertyType == typeof(double))
             {
                 // new RfcDoubleField(name, (double)value);
-                ConstructorInfo constructor =
-                    typeof(DoubleField).GetConstructor(new[] { typeof(string), typeof(double) })
-                    ?? throw new InvalidOperationException("Constructor not found");
-
-                fieldNewExpression = Expression.New(constructor, name, property);
+                fieldConstructor = typeof(DoubleField).GetConstructor(new[] { typeof(string), typeof(double) });
             }
             else if (propertyInfo.PropertyType == typeof(decimal))
             {
                 // new RfcDecimalField(name, (decimal)value);
-                ConstructorInfo constructor =
-                    typeof(DecimalField).GetConstructor(new[] { typeof(string), typeof(decimal) })
-                    ?? throw new InvalidOperationException("Constructor not found");
-
-                fieldNewExpression = Expression.New(constructor, name, property);
+                fieldConstructor = typeof(DecimalField).GetConstructor(new[] { typeof(string), typeof(decimal) });
             }
             else if (propertyInfo.PropertyType == typeof(DateTime) || propertyInfo.PropertyType == typeof(DateTime?))
             {
                 // new RfcDateField(name, (DateTime?)value);
-                ConstructorInfo constructor =
-                    typeof(DateField).GetConstructor(new[] { typeof(string), typeof(DateTime?) })
-                    ?? throw new InvalidOperationException("Constructor not found");
-
-                fieldNewExpression = Expression.New(constructor, name, Expression.Convert(property, typeof(DateTime?)));
+                fieldConstructor = typeof(DateField).GetConstructor(new[] { typeof(string), typeof(DateTime?) });
+                property = Expression.Convert(property, typeof(DateTime?));
             }
             else if (propertyInfo.PropertyType == typeof(TimeSpan) || propertyInfo.PropertyType == typeof(TimeSpan?))
             {
                 // new RfcTimeField(name, (TimeSpan?)value);
-                ConstructorInfo constructor =
-                    typeof(TimeField).GetConstructor(new[] { typeof(string), typeof(TimeSpan?) })
-                    ?? throw new InvalidOperationException("Constructor not found");
-
-                fieldNewExpression = Expression.New(constructor, name, Expression.Convert(property, typeof(TimeSpan?)));
+                fieldConstructor = typeof(TimeField).GetConstructor(new[] { typeof(string), typeof(TimeSpan?) });
+                property = Expression.Convert(property, typeof(TimeSpan?));
             }
             else if (propertyInfo.PropertyType.IsArray)
             {
                 // new RfcTableField<TElementType>(name, (TElementType[])value);
-                Type tableFieldType =
-                    typeof(TableField<>).MakeGenericType(propertyInfo.PropertyType.GetElementType());
-
-                ConstructorInfo constructor =
-                    tableFieldType.GetConstructor(new[] { typeof(string), propertyInfo.PropertyType })
-                    ?? throw new InvalidOperationException("Constructor not found");
-
-                fieldNewExpression = Expression.New(constructor, name, property);
+                Type tableFieldType = typeof(TableField<>).MakeGenericType(propertyInfo.PropertyType.GetElementType());
+                fieldConstructor = tableFieldType.GetConstructor(new[] { typeof(string), propertyInfo.PropertyType });
             }
-            else
+            else if (!propertyInfo.PropertyType.IsPrimitive)
             {
                 // new RfcStructureField<T>(name, (T)value);
-                Type structureFieldType =
-                    typeof(StructureField<>).MakeGenericType(propertyInfo.PropertyType);
-
-                ConstructorInfo constructor =
-                    structureFieldType.GetConstructor(new[] { typeof(string), propertyInfo.PropertyType })
-                    ?? throw new InvalidOperationException("Constructor not found");
-
-                fieldNewExpression = Expression.New(constructor, name, property);
+                Type structureFieldType = typeof(StructureField<>).MakeGenericType(propertyInfo.PropertyType);
+                fieldConstructor = structureFieldType.GetConstructor(new[] { typeof(string), propertyInfo.PropertyType });
             }
+
+            NewExpression fieldNewExpression = Expression.New(
+                constructor: fieldConstructor ?? throw new InvalidOperationException("No matching field constructor found"),
+                name,
+                property);
 
             // instance.Apply(interopParameter, dataHandleParameter);
             return Expression.Call(
