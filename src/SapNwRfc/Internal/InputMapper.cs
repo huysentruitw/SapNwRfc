@@ -12,9 +12,6 @@ namespace SapNwRfc.Internal
     {
         private static readonly Lazy<MethodInfo> FieldApplyMethod = new Lazy<MethodInfo>(GetFieldApplyMethod);
 
-        private static readonly ConcurrentDictionary<Type, ConstructorInfo> FieldsConstructorsCache =
-            new ConcurrentDictionary<Type, ConstructorInfo>();
-
         private static readonly ConcurrentDictionary<Type, Action<RfcInterop, IntPtr, object>> ApplyActionsCache =
             new ConcurrentDictionary<Type, Action<RfcInterop, IntPtr, object>>();
 
@@ -60,9 +57,6 @@ namespace SapNwRfc.Internal
             return expression.Compile();
         }
 
-        private static ConstructorInfo GetFieldConstructor(Expression<Func<IField>> constructor)
-            => ((NewExpression)constructor.Body).Constructor;
-
         private static Expression BuildApplyExpressionForProperty(
             PropertyInfo propertyInfo,
             Expression interopParameter,
@@ -79,60 +73,51 @@ namespace SapNwRfc.Internal
             if (propertyInfo.PropertyType == typeof(string))
             {
                 // new RfcStringField(name, (string)value);
-                fieldConstructor = FieldsConstructorsCache
-                    .GetOrAdd(typeof(StringField), _ => GetFieldConstructor(() => new StringField(default(string), default(string))));
+                fieldConstructor = GetFieldConstructor(() => new StringField(default, default));
             }
             else if (propertyInfo.PropertyType == typeof(int))
             {
                 // new RfcIntField(name, (int)value);
-                fieldConstructor = FieldsConstructorsCache
-                    .GetOrAdd(typeof(IntField), _ => GetFieldConstructor(() => new IntField(default(string), default(int))));
+                fieldConstructor = GetFieldConstructor(() => new IntField(default, default));
             }
             else if (propertyInfo.PropertyType == typeof(long))
             {
                 // new RfcLongField(name, (long)value);
-                fieldConstructor = FieldsConstructorsCache
-                    .GetOrAdd(typeof(LongField), _ => GetFieldConstructor(() => new LongField(default(string), default(long))));
+                fieldConstructor = GetFieldConstructor(() => new LongField(default, default));
             }
             else if (propertyInfo.PropertyType == typeof(double))
             {
                 // new RfcDoubleField(name, (double)value);
-                fieldConstructor = FieldsConstructorsCache
-                    .GetOrAdd(typeof(DoubleField), _ => GetFieldConstructor(() => new DoubleField(default(string), default(double))));
+                fieldConstructor = GetFieldConstructor(() => new DoubleField(default, default));
             }
             else if (propertyInfo.PropertyType == typeof(decimal))
             {
                 // new RfcDecimalField(name, (decimal)value);
-                fieldConstructor = FieldsConstructorsCache
-                    .GetOrAdd(typeof(DecimalField), _ => GetFieldConstructor(() => new DecimalField(default(string), default(decimal))));
+                fieldConstructor = GetFieldConstructor(() => new DecimalField(default, default));
             }
             else if (propertyInfo.PropertyType == typeof(DateTime) || propertyInfo.PropertyType == typeof(DateTime?))
             {
                 // new RfcDateField(name, (DateTime?)value);
-                fieldConstructor = FieldsConstructorsCache
-                    .GetOrAdd(typeof(DateField), _ => GetFieldConstructor(() => new DateField(default(string), default(DateTime?))));
+                fieldConstructor = GetFieldConstructor(() => new DateField(default, default));
                 property = Expression.Convert(property, typeof(DateTime?));
             }
             else if (propertyInfo.PropertyType == typeof(TimeSpan) || propertyInfo.PropertyType == typeof(TimeSpan?))
             {
                 // new RfcTimeField(name, (TimeSpan?)value);
-                fieldConstructor = FieldsConstructorsCache
-                    .GetOrAdd(typeof(TimeField), _ => GetFieldConstructor(() => new TimeField(default(string), default(TimeSpan?))));
+                fieldConstructor = GetFieldConstructor(() => new TimeField(default, default));
                 property = Expression.Convert(property, typeof(TimeSpan?));
             }
             else if (propertyInfo.PropertyType.IsArray)
             {
                 // new RfcTableField<TElementType>(name, (TElementType[])value);
                 Type tableFieldType = typeof(TableField<>).MakeGenericType(propertyInfo.PropertyType.GetElementType());
-                fieldConstructor = FieldsConstructorsCache
-                    .GetOrAdd(tableFieldType, _ => tableFieldType.GetConstructor(new[] { typeof(string), propertyInfo.PropertyType }));
+                fieldConstructor = tableFieldType.GetConstructor(new[] { typeof(string), propertyInfo.PropertyType });
             }
             else if (!propertyInfo.PropertyType.IsPrimitive)
             {
                 // new RfcStructureField<T>(name, (T)value);
                 Type structureFieldType = typeof(StructureField<>).MakeGenericType(propertyInfo.PropertyType);
-                fieldConstructor = FieldsConstructorsCache
-                    .GetOrAdd(structureFieldType, _ => structureFieldType.GetConstructor(new[] { typeof(string), propertyInfo.PropertyType }));
+                fieldConstructor = structureFieldType.GetConstructor(new[] { typeof(string), propertyInfo.PropertyType });
             }
 
             NewExpression fieldNewExpression = Expression.New(
@@ -146,5 +131,8 @@ namespace SapNwRfc.Internal
                 method: FieldApplyMethod.Value,
                 arguments: new[] { interopParameter, dataHandleParameter });
         }
+
+        private static ConstructorInfo GetFieldConstructor(Expression<Func<IField>> constructor)
+            => ((NewExpression)constructor.Body).Constructor;
     }
 }
