@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
 using System.Linq;
 using FluentAssertions;
 using Moq;
@@ -18,12 +19,14 @@ namespace SapNwRfc.Tests.Internal
 
         private delegate void GetStringCallback(IntPtr dataHandle, string name, char[] buffer, uint bufferLength, out uint stringLength, out RfcErrorInfo errorInfo);
 
-        [Fact]
-        public void Extract_String_ShouldMapFromString()
+        [Theory]
+        [InlineData("")]
+        [InlineData("hello")]
+        public void Extract_String_ShouldMapFromString(string value)
         {
             // Assert
-            const string value = "Hello";
-            uint stringLength = (uint)value.Length;
+            string stringValue = value;
+            uint stringLength = (uint)stringValue.Length;
             RfcErrorInfo errorInfo;
             var resultCodeQueue = new Queue<RfcResultCode>();
             resultCodeQueue.Enqueue(RfcResultCode.RFC_BUFFER_TOO_SMALL);
@@ -35,7 +38,7 @@ namespace SapNwRfc.Tests.Internal
                     ei = default;
                     sl = stringLength;
                     if (buffer.Length <= 0 || bufferLength <= 0) return;
-                    Array.Copy(value.ToCharArray(), buffer, value.Length);
+                    Array.Copy(stringValue.ToCharArray(), buffer, stringValue.Length);
                 }))
                 .Returns(resultCodeQueue.Dequeue);
 
@@ -51,7 +54,7 @@ namespace SapNwRfc.Tests.Internal
                 x => x.GetString(DataHandle, "STRINGVALUE", It.IsAny<char[]>(), stringLength + 1, out discard, out errorInfo),
                 Times.Once);
             result.Should().NotBeNull();
-            result.StringValue.Should().Be("Hello");
+            result.StringValue.Should().Be(stringValue);
         }
 
         [Fact]
@@ -79,20 +82,23 @@ namespace SapNwRfc.Tests.Internal
             public string StringValue { get; set; }
         }
 
-        [Fact]
-        public void Extract_Int_ShouldMapFromInt()
+        [Theory]
+        [InlineData(123)]
+        [InlineData(int.MinValue)]
+        [InlineData(int.MaxValue)]
+        public void Extract_Int_ShouldMapFromInt(int value)
         {
             // Arrange
-            int value = 334;
+            int intValue = value;
             RfcErrorInfo errorInfo;
-            _interopMock.Setup(x => x.GetInt(DataHandle, "INTVALUE", out value, out errorInfo));
+            _interopMock.Setup(x => x.GetInt(DataHandle, "INTVALUE", out intValue, out errorInfo));
 
             // Act
             IntModel result = OutputMapper.Extract<IntModel>(_interopMock.Object, DataHandle);
 
             // Assert
             result.Should().NotBeNull();
-            result.IntValue.Should().Be(334);
+            result.IntValue.Should().Be(intValue);
         }
 
         private sealed class IntModel
@@ -100,20 +106,23 @@ namespace SapNwRfc.Tests.Internal
             public int IntValue { get; set; }
         }
 
-        [Fact]
-        public void Extract_Long_ShouldMapFromInt8()
+        [Theory]
+        [InlineData(66778L)]
+        [InlineData(long.MinValue)]
+        [InlineData(long.MaxValue)]
+        public void Extract_Long_ShouldMapFromInt8(long value)
         {
             // Arrange
-            var value = 66778L;
+            var longValue = value;
             RfcErrorInfo errorInfo;
-            _interopMock.Setup(x => x.GetInt8(DataHandle, "LONGVALUE", out value, out errorInfo));
+            _interopMock.Setup(x => x.GetInt8(DataHandle, "LONGVALUE", out longValue, out errorInfo));
 
             // Act
             LongModel result = OutputMapper.Extract<LongModel>(_interopMock.Object, DataHandle);
 
             // Assert
             result.Should().NotBeNull();
-            result.LongValue.Should().Be(66778L);
+            result.LongValue.Should().Be(longValue);
         }
 
         private sealed class LongModel
@@ -121,20 +130,23 @@ namespace SapNwRfc.Tests.Internal
             public long LongValue { get; set; }
         }
 
-        [Fact]
-        public void Extract_Double_ShouldMapFromFloat()
+        [Theory]
+        [InlineData(1234.5d)]
+        [InlineData(double.MinValue)]
+        [InlineData(double.MaxValue)]
+        public void Extract_Double_ShouldMapFromFloat(double value)
         {
             // Arrange
-            var value = 1234.5d;
+            var doubleValue = value;
             RfcErrorInfo errorInfo;
-            _interopMock.Setup(x => x.GetFloat(DataHandle, "DOUBLEVALUE", out value, out errorInfo));
+            _interopMock.Setup(x => x.GetFloat(DataHandle, "DOUBLEVALUE", out doubleValue, out errorInfo));
 
             // Act
             DoubleModel result = OutputMapper.Extract<DoubleModel>(_interopMock.Object, DataHandle);
 
             // Assert
             result.Should().NotBeNull();
-            result.DoubleValue.Should().Be(1234.5d);
+            result.DoubleValue.Should().Be(doubleValue);
         }
 
         private sealed class DoubleModel
@@ -142,12 +154,14 @@ namespace SapNwRfc.Tests.Internal
             public double DoubleValue { get; set; }
         }
 
-        [Fact]
-        public void Extract_Decimal_ShouldMapFromDecimalString()
+        [Theory]
+        [InlineData(123.56)]
+        [InlineData(-123.56)]
+        public void Extract_Decimal_ShouldMapFromDecimalString(decimal value)
         {
             // Assert
-            const string value = "123.56";
-            uint stringLength = (uint)value.Length;
+            string stringValue = value.ToString("G", CultureInfo.InvariantCulture);
+            uint stringLength = (uint)stringValue.Length;
             RfcErrorInfo errorInfo;
             var resultCodeQueue = new Queue<RfcResultCode>();
             resultCodeQueue.Enqueue(RfcResultCode.RFC_BUFFER_TOO_SMALL);
@@ -159,7 +173,7 @@ namespace SapNwRfc.Tests.Internal
                     ei = default;
                     sl = stringLength;
                     if (buffer.Length <= 0 || bufferLength <= 0) return;
-                    Array.Copy(value.ToCharArray(), buffer, value.Length);
+                    Array.Copy(stringValue.ToCharArray(), buffer, stringValue.Length);
                 }))
                 .Returns(resultCodeQueue.Dequeue);
 
@@ -175,7 +189,7 @@ namespace SapNwRfc.Tests.Internal
                 x => x.GetString(DataHandle, "DECIMALVALUE", It.IsAny<char[]>(), stringLength + 1, out discard, out errorInfo),
                 Times.Once);
             result.Should().NotBeNull();
-            result.DecimalValue.Should().Be(123.56M);
+            result.DecimalValue.Should().Be(value);
         }
 
         [Fact]

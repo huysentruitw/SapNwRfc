@@ -9,7 +9,7 @@ using Xunit;
 
 namespace SapNwRfc.Tests.Internal
 {
-public sealed class InputMapperTests
+    public sealed class InputMapperTests
     {
         private static readonly Fixture Fixture = new Fixture();
         private static readonly IntPtr DataHandle = (IntPtr)123;
