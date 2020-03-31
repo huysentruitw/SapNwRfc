@@ -11,6 +11,9 @@ namespace SapNwRfc.Internal
 {
     internal static class OutputMapper
     {
+        private static readonly ConcurrentDictionary<Type, MethodInfo> FieldExtractMethodsCache =
+            new ConcurrentDictionary<Type, MethodInfo>();
+
         private static readonly ConcurrentDictionary<Type, Func<RfcInterop, IntPtr, object>> ExtractFuncsCache =
             new ConcurrentDictionary<Type, Func<RfcInterop, IntPtr, object>>();
 
@@ -66,59 +69,57 @@ namespace SapNwRfc.Internal
             MethodInfo extractMethod = null;
             if (propertyInfo.PropertyType == typeof(string))
             {
-                extractMethod = typeof(StringField)
-                    .GetMethod(nameof(StringField.Extract), new[] { typeof(RfcInterop), typeof(IntPtr), typeof(string) });
+                extractMethod = FieldExtractMethodsCache
+                    .GetOrAdd(typeof(StringField), GetFieldExtractMethod(() => StringField.Extract(default(RfcInterop), default(IntPtr), default(string))));
             }
             else if (propertyInfo.PropertyType == typeof(int))
             {
-                extractMethod = typeof(IntField)
-                    .GetMethod(nameof(IntField.Extract), new[] { typeof(RfcInterop), typeof(IntPtr), typeof(string) });
+                extractMethod = FieldExtractMethodsCache
+                    .GetOrAdd(typeof(IntField), GetFieldExtractMethod(() => IntField.Extract(default(RfcInterop), default(IntPtr), default(string))));
             }
             else if (propertyInfo.PropertyType == typeof(long))
             {
-                extractMethod = typeof(LongField)
-                    .GetMethod(nameof(LongField.Extract), new[] { typeof(RfcInterop), typeof(IntPtr), typeof(string) });
+                extractMethod = FieldExtractMethodsCache
+                    .GetOrAdd(typeof(LongField), GetFieldExtractMethod(() => LongField.Extract(default(RfcInterop), default(IntPtr), default(string))));
             }
             else if (propertyInfo.PropertyType == typeof(double))
             {
-                extractMethod = typeof(DoubleField)
-                    .GetMethod(nameof(DoubleField.Extract), new[] { typeof(RfcInterop), typeof(IntPtr), typeof(string) });
+                extractMethod = FieldExtractMethodsCache
+                    .GetOrAdd(typeof(DoubleField), GetFieldExtractMethod(() => DoubleField.Extract(default(RfcInterop), default(IntPtr), default(string))));
             }
             else if (propertyInfo.PropertyType == typeof(decimal))
             {
-                extractMethod = typeof(DecimalField)
-                    .GetMethod(nameof(DecimalField.Extract), new[] { typeof(RfcInterop), typeof(IntPtr), typeof(string) });
+                extractMethod = FieldExtractMethodsCache
+                    .GetOrAdd(typeof(DecimalField), GetFieldExtractMethod(() => DecimalField.Extract(default(RfcInterop), default(IntPtr), default(string))));
             }
             else if (propertyInfo.PropertyType == typeof(DateTime) || propertyInfo.PropertyType == typeof(DateTime?))
             {
                 convertToNonNullable = propertyInfo.PropertyType == typeof(DateTime);
-                extractMethod = typeof(DateField)
-                    .GetMethod(nameof(DateField.Extract), new[] { typeof(RfcInterop), typeof(IntPtr), typeof(string) });
+                extractMethod = FieldExtractMethodsCache
+                    .GetOrAdd(typeof(DateField), GetFieldExtractMethod(() => DateField.Extract(default(RfcInterop), default(IntPtr), default(string))));
             }
             else if (propertyInfo.PropertyType == typeof(TimeSpan) || propertyInfo.PropertyType == typeof(TimeSpan?))
             {
                 convertToNonNullable = propertyInfo.PropertyType == typeof(TimeSpan);
-                extractMethod = typeof(TimeField)
-                    .GetMethod(nameof(TimeField.Extract), new[] { typeof(RfcInterop), typeof(IntPtr), typeof(string) });
+                extractMethod = FieldExtractMethodsCache
+                    .GetOrAdd(typeof(TimeField), GetFieldExtractMethod(() => TimeField.Extract(default(RfcInterop), default(IntPtr), default(string))));
             }
             else if (propertyInfo.PropertyType.IsArray)
             {
                 Type elementType = propertyInfo.PropertyType.GetElementType();
-                extractMethod = typeof(TableField<>)
-                    .MakeGenericType(elementType)
-                    .GetMethod(
-                        name: nameof(TableField<object>.Extract),
-                        types: new[] { typeof(RfcInterop), typeof(IntPtr), typeof(string) })
-                    .MakeGenericMethod(elementType);
+                Type tableFieldType = typeof(TableField<>).MakeGenericType(elementType);
+                extractMethod = FieldExtractMethodsCache
+                    .GetOrAdd(tableFieldType, GetFieldExtractMethod(() => TableField<object>.Extract<object>(default(RfcInterop), default(IntPtr), default(string)))
+                        .GetGenericMethodDefinition()
+                        .MakeGenericMethod(elementType));
             }
             else if (!propertyInfo.PropertyType.IsPrimitive)
             {
-                extractMethod = typeof(StructureField<>)
-                    .MakeGenericType(propertyInfo.PropertyType)
-                    .GetMethod(
-                        name: nameof(StructureField<object>.Extract),
-                        types: new[] { typeof(RfcInterop), typeof(IntPtr), typeof(string) })
-                    .MakeGenericMethod(propertyInfo.PropertyType);
+                Type structureFieldType = typeof(StructureField<>).MakeGenericType(propertyInfo.PropertyType);
+                extractMethod = FieldExtractMethodsCache
+                    .GetOrAdd(structureFieldType, GetFieldExtractMethod(() => StructureField<object>.Extract<object>(default(RfcInterop), default(IntPtr), default(string)))
+                        .GetGenericMethodDefinition()
+                        .MakeGenericMethod(propertyInfo.PropertyType));
             }
 
             if (extractMethod == null)
@@ -139,5 +140,8 @@ namespace SapNwRfc.Internal
                     right: Expression.Default(propertyInfo.PropertyType)))
                 : Expression.Assign(property, fieldValue);
         }
+
+        private static MethodInfo GetFieldExtractMethod(Expression<Action> extractMethod)
+            => ((MethodCallExpression)extractMethod.Body).Method;
     }
 }

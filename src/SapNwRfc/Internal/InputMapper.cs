@@ -3,7 +3,6 @@ using System.Collections.Concurrent;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
-using SapNwRfc.Exceptions;
 using SapNwRfc.Internal.Fields;
 using SapNwRfc.Internal.Interop;
 
@@ -28,7 +27,7 @@ namespace SapNwRfc.Internal
 
         private static MethodInfo GetFieldApplyMethod()
         {
-            Expression<Action<IField>> expression = field => field.Apply(default, default);
+            Expression<Action<IField>> expression = field => field.Apply(default(RfcInterop), default(IntPtr));
             return ((MethodCallExpression)expression.Body).Method;
         }
 
