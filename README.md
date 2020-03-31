@@ -130,6 +130,8 @@ class SomeFunctionResultItem
 SapLibrary.EnsureLibraryPresent();
 ```
 
+This will throw an [SapLibraryNotFoundException](/src/SapNwRfc/Exceptions/SapLibraryNotFoundException.cs) with a meaningful message.
+
 ## Connection String parameters
 
 | Field                        | SAP Field
