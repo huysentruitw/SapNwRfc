@@ -1,4 +1,4 @@
-﻿using System.Threading;
+using System.Threading;
 using Moq;
 using SapNwRfc.Exceptions;
 using SapNwRfc.Pooling;
@@ -24,17 +24,14 @@ namespace SapNwRfc.Tests.Pooling
         }
 
         [Fact]
-        public void Constructor_ShouldGetConnectionFromPool()
+        public void Constructor_ShouldNotConnectionFromPool()
         {
-            // Arrange
-            CancellationToken cancellationToken = new CancellationTokenSource().Token;
-
             // Act
             // ReSharper disable once ObjectCreationAsStatement
-            new SapPooledConnection(_connectionPoolMock.Object, cancellationToken);
+            new SapPooledConnection(_connectionPoolMock.Object);
 
             // Assert
-            _connectionPoolMock.Verify(x => x.GetConnection(cancellationToken), Times.Once);
+            _connectionPoolMock.Verify(x => x.GetConnection(It.IsAny<CancellationToken>()), Times.Never);
             _connectionPoolMock.Verify(x => x.ReturnConnection(It.IsAny<ISapConnection>()), Times.Never);
             _connectionPoolMock.Verify(x => x.ForgetConnection(It.IsAny<ISapConnection>()), Times.Never);
         }
@@ -44,6 +41,7 @@ namespace SapNwRfc.Tests.Pooling
         {
             // Arrange
             var connection = new SapPooledConnection(_connectionPoolMock.Object);
+            connection.InvokeFunction("Test");
 
             // Act
             connection.Dispose();
@@ -58,6 +56,7 @@ namespace SapNwRfc.Tests.Pooling
         {
             // Arrange
             var connection = new SapPooledConnection(_connectionPoolMock.Object);
+            connection.InvokeFunction("Test");
 
             // Act
             connection.Dispose();

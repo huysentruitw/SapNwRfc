@@ -10,18 +10,16 @@ namespace SapNwRfc.Pooling
     public sealed class SapPooledConnection : ISapPooledConnection
     {
         private readonly ISapConnectionPool _pool;
-        private ISapConnection _connection;
+        private ISapConnection _connection = null;
         private bool _disposed = false;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="SapPooledConnection"/> class.
         /// </summary>
         /// <param name="pool">The connection pool.</param>
-        /// <param name="cancellationToken">The cancellation token.</param>
-        public SapPooledConnection(ISapConnectionPool pool, CancellationToken cancellationToken = default)
+        public SapPooledConnection(ISapConnectionPool pool)
         {
             _pool = pool;
-            _connection = pool.GetConnection(cancellationToken);
         }
 
         /// <summary>
@@ -41,7 +39,12 @@ namespace SapNwRfc.Pooling
             if (_disposed)
                 return;
 
-            _pool.ReturnConnection(_connection);
+            if (_connection != null)
+            {
+                _pool.ReturnConnection(_connection);
+                _connection = null;
+            }
+
             _disposed = true;
         }
 
@@ -50,6 +53,7 @@ namespace SapNwRfc.Pooling
         {
             try
             {
+                _connection = _connection ?? _pool.GetConnection(cancellationToken);
                 using (ISapFunction function = _connection.CreateFunction(name))
                     function.Invoke();
             }
@@ -70,6 +74,7 @@ namespace SapNwRfc.Pooling
         {
             try
             {
+                _connection = _connection ?? _pool.GetConnection(cancellationToken);
                 using (ISapFunction function = _connection.CreateFunction(name))
                     function.Invoke(input);
             }
@@ -90,6 +95,7 @@ namespace SapNwRfc.Pooling
         {
             try
             {
+                _connection = _connection ?? _pool.GetConnection(cancellationToken);
                 using (ISapFunction function = _connection.CreateFunction(name))
                     return function.Invoke<TOutput>();
             }
@@ -110,6 +116,7 @@ namespace SapNwRfc.Pooling
         {
             try
             {
+                _connection = _connection ?? _pool.GetConnection(cancellationToken);
                 using (ISapFunction function = _connection.CreateFunction(name))
                     return function.Invoke<TOutput>(input);
             }
