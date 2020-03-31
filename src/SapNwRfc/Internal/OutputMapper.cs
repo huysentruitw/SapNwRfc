@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
@@ -109,34 +109,35 @@ namespace SapNwRfc.Internal
                     .GetMethod(
                         name: nameof(TableField<object>.Extract),
                         types: new[] { typeof(RfcInterop), typeof(IntPtr), typeof(string) })
-                    ?.MakeGenericMethod(elementType);
+                    .MakeGenericMethod(elementType);
             }
-            else
+            else if (!propertyInfo.PropertyType.IsPrimitive)
             {
                 extractMethod = typeof(StructureField<>)
                     .MakeGenericType(propertyInfo.PropertyType)
                     .GetMethod(
                         name: nameof(StructureField<object>.Extract),
                         types: new[] { typeof(RfcInterop), typeof(IntPtr), typeof(string) })
-                    ?.MakeGenericMethod(propertyInfo.PropertyType);
+                    .MakeGenericMethod(propertyInfo.PropertyType);
             }
 
-            // ReSharper disable once PossibleNullReferenceException
-            PropertyInfo rfcFieldValueProperty =
-                extractMethod.ReturnType.GetProperty("Value")
-                ?? throw new InvalidOperationException($"Value property not found on type {extractMethod.ReturnType.Name}");
+            if (extractMethod == null)
+                throw new InvalidOperationException($"No matching extract method found for type {propertyInfo.PropertyType.Name}");
 
-            MemberExpression rfcFieldValue = Expression.Property(
+            // ReSharper disable once PossibleNullReferenceException
+            PropertyInfo fieldValueProperty = extractMethod.ReturnType.GetProperty(nameof(Field<object>.Value));
+
+            MemberExpression fieldValue = Expression.Property(
                 Expression.Call(
                     method: extractMethod,
                     arguments: new[] { interop, dataHandle, name }),
-                rfcFieldValueProperty);
+                fieldValueProperty);
 
             return convertToNonNullable
                 ? Expression.Assign(property, Expression.Coalesce(
-                    left: rfcFieldValue,
+                    left: fieldValue,
                     right: Expression.Default(propertyInfo.PropertyType)))
-                : Expression.Assign(property, rfcFieldValue);
+                : Expression.Assign(property, fieldValue);
         }
     }
 }

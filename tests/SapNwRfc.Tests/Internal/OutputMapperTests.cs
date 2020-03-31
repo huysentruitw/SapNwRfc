@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
@@ -495,7 +495,7 @@ namespace SapNwRfc.Tests.Internal
         }
 
         [Fact]
-        public void Extract_PropertyWithRfcNameAttribute_ShouldMapUsingRfcName()
+        public void Extract_PropertyWithSapNameAttribute_ShouldMapUsingRfcName()
         {
             // Arrange
             int value = 334;
@@ -514,6 +514,22 @@ namespace SapNwRfc.Tests.Internal
         {
             [SapName("I34")]
             public int IntValue { get; set; }
+        }
+
+        [Fact]
+        public void Extract_UnknownTypeThatCannotBeExtracted_ShouldThrowException()
+        {
+            // Arrange & Act
+            Action action = () => OutputMapper.Extract<UnknownTypeModel>(_interopMock.Object, DataHandle);
+
+            // Assert
+            action.Should().Throw<InvalidOperationException>()
+                .WithMessage("No matching extract method found for type Single");
+        }
+
+        private sealed class UnknownTypeModel
+        {
+            public float Float { get; set; }
         }
     }
 }
