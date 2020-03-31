@@ -238,7 +238,34 @@ namespace SapNwRfc.Tests.Internal
         [InlineData("00000000")]
         [InlineData("        ")]
         [InlineData("abcdefgh")]
-        public void Extract_ZeroOrEmptyOrInvalidDate_ShouldMapToNullDateTime(string value)
+        public void Extract_NonNullableDateTime_ZeroOrEmptyOrInvalidDate_ShouldMapToMinimumDateTime(string value)
+        {
+            // Arrange
+            RfcErrorInfo errorInfo;
+            _interopMock
+                .Setup(x => x.GetDate(It.IsAny<IntPtr>(), It.IsAny<string>(), It.IsAny<char[]>(), out errorInfo))
+                .Callback(new GetDateCallback((IntPtr dataHandle, string name, char[] buffer, out RfcErrorInfo ei) =>
+                {
+                    Array.Copy(value.ToCharArray(), buffer, value.Length);
+                    ei = default;
+                }));
+
+            // Act
+            DateTimeModel result = OutputMapper.Extract<DateTimeModel>(_interopMock.Object, DataHandle);
+
+            // Assert
+            _interopMock.Verify(
+                x => x.GetDate(DataHandle, "DATETIMEVALUE", It.IsAny<char[]>(), out errorInfo),
+                Times.Once);
+            result.Should().NotBeNull();
+            result.DateTimeValue.Should().Be(DateTime.MinValue);
+        }
+
+        [Theory]
+        [InlineData("00000000")]
+        [InlineData("        ")]
+        [InlineData("abcdefgh")]
+        public void Extract_NullableDateTime_ZeroOrEmptyOrInvalidDate_ShouldMapToNullDateTime(string value)
         {
             // Arrange
             RfcErrorInfo errorInfo;
@@ -303,7 +330,34 @@ namespace SapNwRfc.Tests.Internal
         [InlineData("000000")]
         [InlineData("      ")]
         [InlineData("abcdef")]
-        public void Extract_ZeroOrEmptyOrInvalidTime_ShouldMapToNullTimeSpan(string value)
+        public void Extract_NonNullableTimeSpan_ZeroOrEmptyOrInvalidTime_ShouldMapToZeroTimeSpan(string value)
+        {
+            // Arrange
+            RfcErrorInfo errorInfo;
+            _interopMock
+                .Setup(x => x.GetTime(It.IsAny<IntPtr>(), It.IsAny<string>(), It.IsAny<char[]>(), out errorInfo))
+                .Callback(new GetTimeCallback((IntPtr dataHandle, string name, char[] buffer, out RfcErrorInfo ei) =>
+                {
+                    Array.Copy(value.ToCharArray(), buffer, value.Length);
+                    ei = default;
+                }));
+
+            // Act
+            TimeSpanModel result = OutputMapper.Extract<TimeSpanModel>(_interopMock.Object, DataHandle);
+
+            // Assert
+            _interopMock.Verify(
+                x => x.GetTime(DataHandle, "TIMESPANVALUE", It.IsAny<char[]>(), out errorInfo),
+                Times.Once);
+            result.Should().NotBeNull();
+            result.TimeSpanValue.Should().Be(TimeSpan.Zero);
+        }
+
+        [Theory]
+        [InlineData("000000")]
+        [InlineData("      ")]
+        [InlineData("abcdef")]
+        public void Extract_NullableTimeSpan_ZeroOrEmptyOrInvalidTime_ShouldMapToNullTimeSpan(string value)
         {
             // Arrange
             RfcErrorInfo errorInfo;

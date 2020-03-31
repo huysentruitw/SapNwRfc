@@ -62,6 +62,7 @@ namespace SapNwRfc.Internal
 
             Expression property = Expression.Property(result, propertyInfo);
 
+            bool convertToNonNullable = false;
             MethodInfo extractMethod = null;
             if (propertyInfo.PropertyType == typeof(string))
             {
@@ -90,11 +91,13 @@ namespace SapNwRfc.Internal
             }
             else if (propertyInfo.PropertyType == typeof(DateTime) || propertyInfo.PropertyType == typeof(DateTime?))
             {
+                convertToNonNullable = propertyInfo.PropertyType == typeof(DateTime);
                 extractMethod = typeof(DateField)
                     .GetMethod(nameof(DateField.Extract), new[] { typeof(RfcInterop), typeof(IntPtr), typeof(string) });
             }
             else if (propertyInfo.PropertyType == typeof(TimeSpan) || propertyInfo.PropertyType == typeof(TimeSpan?))
             {
+                convertToNonNullable = propertyInfo.PropertyType == typeof(TimeSpan);
                 extractMethod = typeof(TimeField)
                     .GetMethod(nameof(TimeField.Extract), new[] { typeof(RfcInterop), typeof(IntPtr), typeof(string) });
             }
@@ -129,8 +132,10 @@ namespace SapNwRfc.Internal
                     arguments: new[] { interop, dataHandle, name }),
                 rfcFieldValueProperty);
 
-            return propertyInfo.PropertyType != rfcFieldValueProperty.PropertyType
-                ? Expression.Assign(property, Expression.Convert(rfcFieldValue, propertyInfo.PropertyType))
+            return convertToNonNullable
+                ? Expression.Assign(property, Expression.Coalesce(
+                    left: rfcFieldValue,
+                    right: Expression.Default(propertyInfo.PropertyType)))
                 : Expression.Assign(property, rfcFieldValue);
         }
     }
