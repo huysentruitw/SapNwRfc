@@ -130,7 +130,7 @@ class SomeFunctionResultItem
 SapLibrary.EnsureLibraryPresent();
 ```
 
-This will throw an [SapLibraryNotFoundException](/src/SapNwRfc/Exceptions/SapLibraryNotFoundException.cs) with a meaningful message.
+This will throw an [SapLibraryNotFoundException](/src/SapNwRfc/Exceptions/SapLibraryNotFoundException.cs) with a meaningful message in case the SAP RFC SDK binaries were not found.
 
 ## Connection String parameters
 
