@@ -278,6 +278,20 @@ public sealed class InputMapperTests
         }
 
         [Fact]
+        public void Apply_ModelWithSapNameAttribute_ShouldUseSapNameInsteadOfPropertyName()
+        {
+            // Arrange
+            RfcErrorInfo errorInfo;
+            var model = new SapNameAttributeModel { Value = 123 };
+
+            // Act
+            InputMapper.Apply(_interopMock.Object, DataHandle, model);
+
+            // Assert
+            _interopMock.Verify(x => x.SetInt(DataHandle, "IN_VAL", 123, out errorInfo), Times.Once);
+        }
+
+        [Fact]
         public void Apply_UnknownTypeThatCannotBeConstructed_ShouldThrowException()
         {
             // Arrange & Act
@@ -300,6 +314,12 @@ public sealed class InputMapperTests
 
         private sealed class Structure
         {
+            public int Value { get; set; }
+        }
+
+        private sealed class SapNameAttributeModel
+        {
+            [SapName("IN_VAL")]
             public int Value { get; set; }
         }
     }

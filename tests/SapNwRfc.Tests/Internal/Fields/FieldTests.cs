@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using FluentAssertions;
 using SapNwRfc.Internal.Fields;
 using SapNwRfc.Internal.Interop;
@@ -45,6 +45,19 @@ namespace SapNwRfc.Tests.Internal.Fields
 
             // Act
             var result = fieldA.Equals(fieldB);
+
+            // Assert
+            result.Should().BeFalse();
+        }
+
+        [Fact]
+        public void Equals_DifferentObjectType_ShouldReturnFalse()
+        {
+            // Arrange
+            var field = new TestField("abc", true);
+
+            // Act
+            var result = field.Equals(123);
 
             // Assert
             result.Should().BeFalse();
