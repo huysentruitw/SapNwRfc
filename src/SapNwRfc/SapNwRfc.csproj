@@ -13,6 +13,7 @@
     <RepositoryUrl>https://github.com/huysentruitw/SapNwRfc</RepositoryUrl>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <CodeAnalysisRuleSet>..\..\ca.ruleset</CodeAnalysisRuleSet>
+    <AssemblyName>SapNwRfcDotNet</AssemblyName>
   </PropertyGroup>
 
   <PropertyGroup>
