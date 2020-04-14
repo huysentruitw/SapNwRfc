@@ -2,6 +2,7 @@
 
 namespace SapNwRfc.Internal.Interop
 {
+    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
     internal struct RfcErrorInfo
     {
         [MarshalAs(UnmanagedType.I4)]
