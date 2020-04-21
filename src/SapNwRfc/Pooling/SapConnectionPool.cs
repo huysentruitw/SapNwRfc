@@ -36,18 +36,35 @@ namespace SapNwRfc.Pooling
             int poolSize = 5,
             TimeSpan? connectionIdleTimeout = null,
             TimeSpan? idleDetectionInterval = null)
-            : this(connectionString, poolSize, connectionIdleTimeout, idleDetectionInterval, null)
+            : this(SapConnectionParameters.Parse(connectionString), poolSize, connectionIdleTimeout, idleDetectionInterval, null)
+        {
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="SapConnectionPool"/> class.
+        /// </summary>
+        /// <param name="connectionParameters">The connection parameters.</param>
+        /// <param name="poolSize">The size of the pool.</param>
+        /// <param name="connectionIdleTimeout">The idle timeout after which unused open connections are disposed. Defaults to 30 seconds.</param>
+        /// <param name="idleDetectionInterval">The interval at which to look for idling connections. Defaults to 1 second.</param>
+        [ExcludeFromCodeCoverage]
+        public SapConnectionPool(
+            SapConnectionParameters connectionParameters,
+            int poolSize = 5,
+            TimeSpan? connectionIdleTimeout = null,
+            TimeSpan? idleDetectionInterval = null)
+            : this(connectionParameters, poolSize, connectionIdleTimeout, idleDetectionInterval, null)
         {
         }
 
         internal SapConnectionPool(
-            string connectionString,
+            SapConnectionParameters connectionParameters,
             int poolSize = 5,
             TimeSpan? connectionIdleTimeout = null,
             TimeSpan? idleDetectionInterval = null,
             Func<SapConnectionParameters, ISapConnection> connectionFactory = null)
         {
-            _connectionParameters = SapConnectionParameters.Parse(connectionString);
+            _connectionParameters = connectionParameters;
             _poolSize = poolSize;
             _connectionIdleTimeout = connectionIdleTimeout ?? TimeSpan.FromSeconds(30);
             _connectionFactory = connectionFactory ?? (parameters => new SapConnection(parameters));

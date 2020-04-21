@@ -11,14 +11,14 @@ namespace SapNwRfc.Tests.Pooling
 {
     public sealed class SapConnectionPoolTests
     {
-        private const string ConnectionString = "ABC";
+        private static readonly SapConnectionParameters ConnectionParameters = new SapConnectionParameters();
 
         [Fact]
         public void GetConnection_ShouldOpenConnection()
         {
             // Arrange
             var connectionMock = new Mock<ISapConnection>();
-            var pool = new SapConnectionPool(ConnectionString, connectionFactory: _ => connectionMock.Object);
+            var pool = new SapConnectionPool(ConnectionParameters, connectionFactory: _ => connectionMock.Object);
 
             // Act
             ISapConnection connection = pool.GetConnection();
@@ -33,7 +33,7 @@ namespace SapNwRfc.Tests.Pooling
         {
             // Arrange
             var pool = new SapConnectionPool(
-                ConnectionString,
+                ConnectionParameters,
                 poolSize: 2,
                 connectionFactory: _ => Mock.Of<ISapConnection>());
 
@@ -52,7 +52,7 @@ namespace SapNwRfc.Tests.Pooling
         {
             // Arrange
             var pool = new SapConnectionPool(
-                ConnectionString,
+                ConnectionParameters,
                 poolSize: 3,
                 connectionFactory: _ => Mock.Of<ISapConnection>());
 
@@ -71,7 +71,7 @@ namespace SapNwRfc.Tests.Pooling
         {
             // Arrange
             var pool = new SapConnectionPool(
-                ConnectionString,
+                ConnectionParameters,
                 poolSize: 3,
                 connectionFactory: _ => Mock.Of<ISapConnection>());
 
@@ -91,7 +91,7 @@ namespace SapNwRfc.Tests.Pooling
         {
             // Arrange
             var pool = new SapConnectionPool(
-                ConnectionString,
+                ConnectionParameters,
                 poolSize: 1,
                 connectionFactory: _ => Mock.Of<ISapConnection>());
 
@@ -119,7 +119,7 @@ namespace SapNwRfc.Tests.Pooling
         {
             // Arrange
             var pool = new SapConnectionPool(
-                ConnectionString,
+                ConnectionParameters,
                 poolSize: 1,
                 connectionFactory: _ => Mock.Of<ISapConnection>());
 
@@ -147,7 +147,7 @@ namespace SapNwRfc.Tests.Pooling
         {
             // Arrange
             var connectionMock = new Mock<ISapConnection>();
-            var pool = new SapConnectionPool(ConnectionString, connectionFactory: _ => connectionMock.Object);
+            var pool = new SapConnectionPool(ConnectionParameters, connectionFactory: _ => connectionMock.Object);
             ISapConnection connection = pool.GetConnection();
 
             // Act
@@ -162,7 +162,7 @@ namespace SapNwRfc.Tests.Pooling
         {
             // Arrange
             var connectionMock = new Mock<ISapConnection>();
-            var pool = new SapConnectionPool(ConnectionString, connectionFactory: _ => connectionMock.Object);
+            var pool = new SapConnectionPool(ConnectionParameters, connectionFactory: _ => connectionMock.Object);
             ISapConnection connection1 = pool.GetConnection();
             ISapConnection connection2 = pool.GetConnection();
             pool.ReturnConnection(connection1);
@@ -181,7 +181,7 @@ namespace SapNwRfc.Tests.Pooling
             // Arrange
             var connectionMock = new Mock<ISapConnection>();
             var pool = new SapConnectionPool(
-                ConnectionString,
+                ConnectionParameters,
                 connectionIdleTimeout: TimeSpan.FromMilliseconds(150),
                 idleDetectionInterval: TimeSpan.FromMilliseconds(25),
                 connectionFactory: _ => connectionMock.Object);
