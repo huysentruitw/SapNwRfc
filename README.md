@@ -134,7 +134,7 @@ This will throw an [SapLibraryNotFoundException](/src/SapNwRfc/Exceptions/SapLib
 
 ## Connection String parameters
 
-The [SapConnection](/src/SapNwRfc/SapConnection.cs) class takes a [SapConnectionParameters](/src/SapNwRfc/SapConnectionParameters.cs) instance or a connection string in the form of:
+The [SapConnection](/src/SapNwRfc/SapConnection.cs) and [SapConnectionPool](/src/SapNwRfc/Pooling/SapConnectionPool.cs) class both take a [SapConnectionParameters](/src/SapNwRfc/SapConnectionParameters.cs) instance or a connection string in the form of:
 
 ```csharp
 "AppServerHost=MY_SERVER_HOST; SystemNumber=00; User=MY_SAP_USER; Password=SECRET; Client=100; Language=EN; PoolSize=5; Trace=8";
