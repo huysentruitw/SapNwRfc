@@ -292,6 +292,20 @@ namespace SapNwRfc.Tests.Internal
         }
 
         [Fact]
+        public void Apply_ModelWithCustomNameAttribute_ShouldUseCustomSapNameInsteadOfPropertyName()
+        {
+            // Arrange
+            RfcErrorInfo errorInfo;
+            var model = new CustomNameAttributeModel { Value = 123 };
+
+            // Act
+            InputMapper.Apply(_interopMock.Object, DataHandle, model);
+
+            // Assert
+            _interopMock.Verify(x => x.SetInt(DataHandle, "CUSTOM_IN_VAL", 123, out errorInfo), Times.Once);
+        }
+
+        [Fact]
         public void Apply_UnknownTypeThatCannotBeConstructed_ShouldThrowException()
         {
             // Arrange & Act
@@ -320,6 +334,20 @@ namespace SapNwRfc.Tests.Internal
         private sealed class SapNameAttributeModel
         {
             [SapName("IN_VAL")]
+            public int Value { get; set; }
+        }
+
+        private sealed class CustomNameAttribute : SapNameAttribute
+        {
+            public CustomNameAttribute(string customName)
+                : base($"CUSTOM_{customName}")
+            {
+            }
+        }
+
+        private sealed class CustomNameAttributeModel
+        {
+            [CustomNameAttribute("IN_VAL")]
             public int Value { get; set; }
         }
     }
