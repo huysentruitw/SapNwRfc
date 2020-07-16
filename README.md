@@ -124,6 +124,22 @@ class SomeFunctionResultItem
 }
 ```
 
+### Exclude properties from mapping
+
+```csharp
+class SomeFunctionResult
+{
+    [SapIgnore]
+    public string IgnoredProperty { get; set; }
+
+    [SapName("STREET")]
+    public string Street { get; set; }
+
+    [SapName("NR")]
+    public string Number { get; set; }
+}
+```
+
 ### Ensure the SAP RFC SDK binaries are present
 
 ```csharp
