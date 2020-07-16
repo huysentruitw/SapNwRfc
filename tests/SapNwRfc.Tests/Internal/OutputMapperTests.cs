@@ -531,6 +531,30 @@ namespace SapNwRfc.Tests.Internal
         }
 
         [Fact]
+        public void Extract_PropertyWithIgnoreAttribute_ShouldBeIgnored()
+        {
+            // Arrange
+            int value = 123;
+            RfcErrorInfo errorInfo;
+            _interopMock.Setup(x => x.GetInt(DataHandle, "VALUE", out value, out errorInfo));
+
+            // Act
+            IgnoreAttributeModel result = OutputMapper.Extract<IgnoreAttributeModel>(_interopMock.Object, DataHandle);
+
+            // Assert
+            _interopMock.Verify(x => x.GetInt(DataHandle, "VALUE", out value, out errorInfo), Times.Never);
+
+            result.Should().NotBeNull();
+            result.Value.Should().Be(0);
+        }
+
+        private sealed class IgnoreAttributeModel
+        {
+            [SapIgnore]
+            public int Value { get; set; }
+        }
+
+        [Fact]
         public void Extract_UnknownTypeThatCannotBeExtracted_ShouldThrowException()
         {
             // Arrange & Act

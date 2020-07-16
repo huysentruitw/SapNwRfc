@@ -63,6 +63,12 @@ namespace SapNwRfc.Internal
             Expression dataHandleParameter,
             Expression inputParameter)
         {
+            // skip property from mapping
+            if (Attribute.IsDefined(propertyInfo, typeof(SapIgnoreAttribute)))
+            {
+                return null;
+            }
+
             SapNameAttribute nameAttribute = propertyInfo.GetCustomAttribute<SapNameAttribute>();
             ConstantExpression name = Expression.Constant(nameAttribute?.Name ?? propertyInfo.Name.ToUpper());
 
