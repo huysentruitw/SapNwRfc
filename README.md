@@ -127,16 +127,22 @@ class SomeFunctionResultItem
 ### Exclude properties from mapping
 
 ```csharp
+class SomeFunctionParameters
+{
+    [SapIgnore]
+    public string IgnoredProperty { get; set; }
+
+    [SapName("SOME_FIELD")]
+    public string SomeField { get; set; }
+}
+
 class SomeFunctionResult
 {
     [SapIgnore]
     public string IgnoredProperty { get; set; }
 
-    [SapName("STREET")]
-    public string Street { get; set; }
-
-    [SapName("NR")]
-    public string Number { get; set; }
+    [SapName("SOME_FIELD")]
+    public string SomeField { get; set; }
 }
 ```
 
