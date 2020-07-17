@@ -282,13 +282,14 @@ namespace SapNwRfc.Tests.Internal
         {
             // Arrange
             RfcErrorInfo errorInfo;
-            var model = new SapIgnoreAttributeModel { Value = 123 };
+            var model = new SapIgnoreAttributeModel { Value = 123, IgnoredProperty = 234 };
 
             // Act
             InputMapper.Apply(_interopMock.Object, DataHandle, model);
 
             // Assert
-            _interopMock.Verify(x => x.SetInt(DataHandle, "VALUE", 123, out errorInfo), Times.Never);
+            _interopMock.Verify(x => x.SetInt(DataHandle, "VALUE", 123, out errorInfo), Times.Once);
+            _interopMock.Verify(x => x.SetInt(DataHandle, "IGNOREDPROPERTY", 234, out errorInfo), Times.Never);
         }
 
         [Fact]
@@ -353,8 +354,10 @@ namespace SapNwRfc.Tests.Internal
 
         private sealed class SapIgnoreAttributeModel
         {
-            [SapIgnore]
             public int Value { get; set; }
+
+            [SapIgnore]
+            public int IgnoredProperty { get; set; }
         }
 
         private sealed class CustomNameAttribute : SapNameAttribute
