@@ -540,17 +540,16 @@ namespace SapNwRfc.Tests.Internal
 
             // Assert
             result.Should().NotBeNull();
-            result.OnInitializeCalled.Should().BeTrue();
+            result.OnInitializeCalled.Should().Be(1);
         }
 
         private sealed class OnIntializeAttributeModel
         {
-            [SapIgnore]
-            public bool OnInitializeCalled { get; set; } = false;
+            public int OnInitializeCalled { get; set; } = 0;
 
             public void OnInitialize()
             {
-                OnInitializeCalled = true;
+                OnInitializeCalled = 1;
             }
         }
 
@@ -564,20 +563,19 @@ namespace SapNwRfc.Tests.Internal
 
             // Assert
             result.Should().NotBeNull();
-            result.OnInitializeCalled.Should().BeTrue();
-            result.NestedObject.OnInitializeCalled.Should().BeTrue();
+            result.OnInitializeCalled.Should().Be(1);
+            result.NestedObject.OnInitializeCalled.Should().Be(1);
         }
 
         private sealed class NestedOnIntializeAttributeModel
         {
             public OnIntializeAttributeModel NestedObject { get; set; }
 
-            [SapIgnore]
-            public bool OnInitializeCalled { get; set; } = false;
+            public int OnInitializeCalled { get; set; } = 0;
 
             public void OnInitialize()
             {
-                OnInitializeCalled = true;
+                OnInitializeCalled = 1;
             }
         }
 
