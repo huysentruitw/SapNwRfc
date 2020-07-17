@@ -531,6 +531,57 @@ namespace SapNwRfc.Tests.Internal
         }
 
         [Fact]
+        public void Extract_ClassWithOnInitializeFunction_ShouldCallOnInitialize()
+        {
+            // Arrange
+
+            // Act
+            OnIntializeAttributeModel result = OutputMapper.Extract<OnIntializeAttributeModel>(_interopMock.Object, DataHandle);
+
+            // Assert
+            result.Should().NotBeNull();
+            result.OnInitializeCalled.Should().BeTrue();
+        }
+
+        private sealed class OnIntializeAttributeModel
+        {
+            [SapIgnore]
+            public bool OnInitializeCalled { get; set; } = false;
+
+            public void OnInitialize()
+            {
+                OnInitializeCalled = true;
+            }
+        }
+
+        [Fact]
+        public void Extract_ClassWithNestedOnInitializeFunction_ShouldCallAllOnInitialize()
+        {
+            // Arrange
+
+            // Act
+            NestedOnIntializeAttributeModel result = OutputMapper.Extract<NestedOnIntializeAttributeModel>(_interopMock.Object, DataHandle);
+
+            // Assert
+            result.Should().NotBeNull();
+            result.OnInitializeCalled.Should().BeTrue();
+            result.NestedObject.OnInitializeCalled.Should().BeTrue();
+        }
+
+        private sealed class NestedOnIntializeAttributeModel
+        {
+            public OnIntializeAttributeModel NestedObject { get; set; }
+
+            [SapIgnore]
+            public bool OnInitializeCalled { get; set; } = false;
+
+            public void OnInitialize()
+            {
+                OnInitializeCalled = true;
+            }
+        }
+
+        [Fact]
         public void Extract_UnknownTypeThatCannotBeExtracted_ShouldThrowException()
         {
             // Arrange & Act

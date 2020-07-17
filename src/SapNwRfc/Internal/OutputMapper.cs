@@ -27,6 +27,9 @@ namespace SapNwRfc.Internal
             ParameterExpression dataHandle = Expression.Parameter(typeof(IntPtr));
             ParameterExpression result = Expression.Variable(type);
 
+            // get OnInitialize method from instance
+            var onInitialize = type.GetMethod("OnInitialize");
+
             IEnumerable<Expression> extractExpressionsForProperties = type
                 .GetProperties(BindingFlags.Instance | BindingFlags.Public)
                 .Select(propertyInfo => BuildExtractExpressionForProperty(
@@ -36,16 +39,22 @@ namespace SapNwRfc.Internal
                     result: result))
                 .Where(x => x != null);
 
-            Expression[] body = Array.Empty<Expression>()
+            IEnumerable<Expression> body = Array.Empty<Expression>()
                 .Concat(new[] { Expression.Assign(result, Expression.New(type)) })
-                .Concat(extractExpressionsForProperties)
-                .Concat(new[] { result })
-                .ToArray();
+                .Concat(extractExpressionsForProperties);
+
+            // Add method to expression tree only if not null to prevent ArgumentNullException
+            if (onInitialize != null)
+            {
+                body = body.Concat(new[] { Expression.Call(result, onInitialize) });
+            }
+
+            body = body.Concat(new[] { result });
 
             var expression = Expression.Lambda<Func<RfcInterop, IntPtr, object>>(
                 body: Expression.Block(
                     variables: new[] { result },
-                    expressions: body),
+                    expressions: body.ToArray()),
                 parameters: new[] { interop, dataHandle });
 
             return expression.Compile();

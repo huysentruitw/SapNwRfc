@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics.CodeAnalysis;
+using System.Reflection;
 using SapNwRfc.Internal.Interop;
 
 namespace SapNwRfc.Internal.Fields
@@ -36,6 +37,13 @@ namespace SapNwRfc.Internal.Fields
             resultCode.ThrowOnError(errorInfo);
 
             T structValue = OutputMapper.Extract<T>(interop, structHandle);
+
+            var onInitialize = structValue.GetType()?.GetMethod("OnInitialize", BindingFlags.Instance);
+
+            if (onInitialize != null)
+            {
+                onInitialize.Invoke(structValue, null);
+            }
 
             return new StructureField<T>(name, structValue);
         }
