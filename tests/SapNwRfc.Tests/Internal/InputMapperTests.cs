@@ -278,6 +278,21 @@ namespace SapNwRfc.Tests.Internal
         }
 
         [Fact]
+        public void Apply_ModelWithSapIgnoreAttribute_ShouldIgnorePropertiesWithIgnoreAttribute()
+        {
+            // Arrange
+            RfcErrorInfo errorInfo;
+            var model = new SapIgnoreAttributeModel { Value = 123, IgnoredProperty = 234 };
+
+            // Act
+            InputMapper.Apply(_interopMock.Object, DataHandle, model);
+
+            // Assert
+            _interopMock.Verify(x => x.SetInt(DataHandle, "VALUE", 123, out errorInfo), Times.Once);
+            _interopMock.Verify(x => x.SetInt(DataHandle, "IGNOREDPROPERTY", 234, out errorInfo), Times.Never);
+        }
+
+        [Fact]
         public void Apply_ModelWithSapNameAttribute_ShouldUseSapNameInsteadOfPropertyName()
         {
             // Arrange
@@ -335,6 +350,14 @@ namespace SapNwRfc.Tests.Internal
         {
             [SapName("IN_VAL")]
             public int Value { get; set; }
+        }
+
+        private sealed class SapIgnoreAttributeModel
+        {
+            public int Value { get; set; }
+
+            [SapIgnore]
+            public int IgnoredProperty { get; set; }
         }
 
         private sealed class CustomNameAttribute : SapNameAttribute
