@@ -124,6 +124,24 @@ class SomeFunctionResultItem
 }
 ```
 
+### Define models with a OnInitialize method. Combined with the SapIgnoreAttribute, calculated properties can be created
+
+```csharp
+class SomeFunctionResult
+{
+    public string FirstName { get; set; }
+
+    public string LastName { get; set; }
+
+    [SapIgnore]
+    public string FullName { get; set; }
+
+    public void OnInitialize() {
+        FullName = string.Concat(FirstName, LastName);
+    }
+}
+```
+
 ### Ensure the SAP RFC SDK binaries are present
 
 ```csharp
