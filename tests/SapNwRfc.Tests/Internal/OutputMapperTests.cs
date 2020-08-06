@@ -543,7 +543,7 @@ namespace SapNwRfc.Tests.Internal
             result.OnInitializeCalled.Should().Be(1);
         }
 
-        private sealed class OnIntializeAttributeModel
+        private sealed class OnIntializeAttributeModel : ISapOnInitialize
         {
             public int OnInitializeCalled { get; set; } = 0;
 
@@ -567,7 +567,7 @@ namespace SapNwRfc.Tests.Internal
             result.NestedObject.OnInitializeCalled.Should().Be(1);
         }
 
-        private sealed class NestedOnIntializeAttributeModel
+        private sealed class NestedOnIntializeAttributeModel : ISapOnInitialize
         {
             public OnIntializeAttributeModel NestedObject { get; set; }
 
