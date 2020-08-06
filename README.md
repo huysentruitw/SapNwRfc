@@ -124,6 +124,28 @@ class SomeFunctionResultItem
 }
 ```
 
+### Exclude properties from mapping
+
+```csharp
+class SomeFunctionParameters
+{
+    [SapIgnore]
+    public string IgnoredProperty { get; set; }
+
+    [SapName("SOME_FIELD")]
+    public string SomeField { get; set; }
+}
+
+class SomeFunctionResult
+{
+    [SapIgnore]
+    public string IgnoredProperty { get; set; }
+
+    [SapName("SOME_FIELD")]
+    public string SomeField { get; set; }
+}
+```
+
 ### Define models with a OnInitialize method. Combined with the SapIgnoreAttribute, calculated properties can be created
 
 ```csharp
