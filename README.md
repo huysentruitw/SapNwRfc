@@ -127,7 +127,7 @@ class SomeFunctionResultItem
 ### Define models with a OnInitialize method. Combined with the SapIgnoreAttribute, calculated properties can be created
 
 ```csharp
-class SomeFunctionResult
+class SomeFunctionResult : ISapOnInitialize
 {
     public string FirstName { get; set; }
 
