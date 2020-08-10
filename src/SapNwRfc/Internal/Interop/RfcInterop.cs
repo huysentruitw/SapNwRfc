@@ -151,6 +151,18 @@ namespace SapNwRfc.Internal.Interop
             => RfcSetTime(dataHandle, name, time, out errorInfo);
 
         [DllImport(SapNwRfcDllName, CharSet = CharSet.Unicode)]
+        private static extern RfcResultCode RfcGetBytes(IntPtr dataHandle, string name, byte[] bytesBuffer, uint bufferLength, out RfcErrorInfo errorInfo);
+
+        public virtual RfcResultCode GetBytes(IntPtr dataHandle, string name, byte[] bytesBuffer, uint bufferLength, out RfcErrorInfo errorInfo)
+            => RfcGetBytes(dataHandle, name, bytesBuffer, bufferLength, out errorInfo);
+
+        [DllImport(SapNwRfcDllName, CharSet = CharSet.Unicode)]
+        private static extern RfcResultCode RfcSetBytes(IntPtr dataHandle, string name, byte[] value, uint valueLength, out RfcErrorInfo errorInfo);
+
+        public virtual RfcResultCode SetBytes(IntPtr dataHandle, string name, byte[] value, uint valueLength, out RfcErrorInfo errorInfo)
+            => RfcSetBytes(dataHandle, name, value, valueLength, out errorInfo);
+
+        [DllImport(SapNwRfcDllName, CharSet = CharSet.Unicode)]
         private static extern RfcResultCode RfcGetStructure(IntPtr dataHandle, string name, out IntPtr structHandle, out RfcErrorInfo errorInfo);
 
         public virtual RfcResultCode GetStructure(IntPtr dataHandle, string name, out IntPtr structHandle, out RfcErrorInfo errorInfo)

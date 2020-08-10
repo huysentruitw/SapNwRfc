@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
@@ -90,6 +91,10 @@ namespace SapNwRfc.Internal
             {
                 extractMethod = GetMethodInfo(() => DecimalField.Extract(default, default, default));
             }
+            else if (propertyInfo.PropertyType == typeof(byte[]))
+            {
+                extractMethod = GetMethodInfo(() => BytesField.Extract(default, default, default, default));
+            }
             else if (propertyInfo.PropertyType == typeof(DateTime) || propertyInfo.PropertyType == typeof(DateTime?))
             {
                 convertToNonNullable = propertyInfo.PropertyType == typeof(DateTime);
@@ -120,10 +125,21 @@ namespace SapNwRfc.Internal
             // ReSharper disable once PossibleNullReferenceException
             PropertyInfo fieldValueProperty = extractMethod.ReturnType.GetProperty(nameof(Field<object>.Value));
 
+            Collection<Expression> arguments = new Collection<Expression>() { interop, dataHandle, name };
+
+            if (propertyInfo.PropertyType == typeof(byte[]))
+            {
+                SapBufferLengthAttribute bufferLengthAttribute = propertyInfo.GetCustomAttribute<SapBufferLengthAttribute>();
+
+                ConstantExpression bufferLength = Expression.Constant(bufferLengthAttribute?.BufferLength ?? 0);
+
+                arguments.Add(bufferLength);
+            }
+
             MemberExpression fieldValue = Expression.Property(
                 Expression.Call(
                     method: extractMethod,
-                    arguments: new[] { interop, dataHandle, name }),
+                    arguments: arguments.ToArray()),
                 fieldValueProperty);
 
             return convertToNonNullable
