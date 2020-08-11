@@ -69,6 +69,8 @@ namespace SapNwRfc.Internal
 
             Expression property = Expression.Property(result, propertyInfo);
 
+            var arguments = new Collection<Expression> { interop, dataHandle, name };
+
             bool convertToNonNullable = false;
             MethodInfo extractMethod = null;
             if (propertyInfo.PropertyType == typeof(string))
@@ -94,6 +96,10 @@ namespace SapNwRfc.Internal
             else if (propertyInfo.PropertyType == typeof(byte[]))
             {
                 extractMethod = GetMethodInfo(() => BytesField.Extract(default, default, default, default));
+
+                SapBufferLengthAttribute bufferLengthAttribute = propertyInfo.GetCustomAttribute<SapBufferLengthAttribute>();
+
+                arguments.Add(Expression.Constant(bufferLengthAttribute?.BufferLength ?? 0));
             }
             else if (propertyInfo.PropertyType == typeof(DateTime) || propertyInfo.PropertyType == typeof(DateTime?))
             {
@@ -124,17 +130,6 @@ namespace SapNwRfc.Internal
 
             // ReSharper disable once PossibleNullReferenceException
             PropertyInfo fieldValueProperty = extractMethod.ReturnType.GetProperty(nameof(Field<object>.Value));
-
-            Collection<Expression> arguments = new Collection<Expression>() { interop, dataHandle, name };
-
-            if (propertyInfo.PropertyType == typeof(byte[]))
-            {
-                SapBufferLengthAttribute bufferLengthAttribute = propertyInfo.GetCustomAttribute<SapBufferLengthAttribute>();
-
-                ConstantExpression bufferLength = Expression.Constant(bufferLengthAttribute?.BufferLength ?? 0);
-
-                arguments.Add(bufferLength);
-            }
 
             MemberExpression fieldValue = Expression.Property(
                 Expression.Call(

@@ -423,7 +423,7 @@ namespace SapNwRfc.Tests.Internal
 
             // Assert
             _interopMock.Verify(
-                x => x.GetBytes(DataHandle, "BYTESVALUE", It.IsAny<byte[]>(), It.IsAny<uint>(), out errorInfo),
+                x => x.GetBytes(DataHandle, "BYTESVALUE", It.IsAny<byte[]>(), 3, out errorInfo),
                 Times.Once);
             result.Should().NotBeNull();
             result.BytesValue.Should().BeEquivalentTo(value);

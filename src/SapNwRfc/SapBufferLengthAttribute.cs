@@ -3,7 +3,7 @@ using System;
 namespace SapNwRfc
 {
     /// <summary>
-    /// Attribute used to set the real SAP RFC property name of a property.
+    /// Attribute used to set the SAP RFC byte buffer length on a byte array property.
     /// </summary>
     [AttributeUsage(AttributeTargets.Property)]
     public class SapBufferLengthAttribute : Attribute
