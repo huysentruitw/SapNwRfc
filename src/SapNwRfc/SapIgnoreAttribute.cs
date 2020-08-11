@@ -8,11 +8,5 @@ namespace SapNwRfc
     [AttributeUsage(AttributeTargets.Property)]
     public class SapIgnoreAttribute : Attribute
     {
-        /// <summary>
-        /// Initializes a new instance of the <see cref="SapIgnoreAttribute"/> class.
-        /// </summary>
-        public SapIgnoreAttribute()
-        {
-        }
     }
 }
