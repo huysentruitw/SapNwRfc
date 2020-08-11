@@ -241,6 +241,7 @@ SAP RFC parameter types don't have to be specified as they're converted by conve
 | `double`    | RFCTYPE_FLOAT     | Floating point, double precision
 | `decimal`   | RFCTYPE_BCD       |
 | `string`    | RFCTYPE_CHAR      |
+| `byte[]`    | RFCTYPE_BYTE      | Raw binary data, fixed length. Has to be used in conjunction with the `[SapBufferLength]`-attribute
 | `DateTime?` | RFCTYPE_DATE      | Only the day, month and year value is used
 | `TimeSpan?` | RFCTYPE_TIME      | Only the hour, minute and second value is used
 | `T`         | RFCTYPE_STRUCTURE | Structures are constructed from nested objects (T) in the input or output model (see [example](#define-models-with-a-nested-structure))

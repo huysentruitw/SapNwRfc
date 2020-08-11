@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
@@ -68,6 +69,8 @@ namespace SapNwRfc.Internal
 
             Expression property = Expression.Property(result, propertyInfo);
 
+            var arguments = new Collection<Expression> { interop, dataHandle, name };
+
             bool convertToNonNullable = false;
             MethodInfo extractMethod = null;
             if (propertyInfo.PropertyType == typeof(string))
@@ -89,6 +92,14 @@ namespace SapNwRfc.Internal
             else if (propertyInfo.PropertyType == typeof(decimal))
             {
                 extractMethod = GetMethodInfo(() => DecimalField.Extract(default, default, default));
+            }
+            else if (propertyInfo.PropertyType == typeof(byte[]))
+            {
+                extractMethod = GetMethodInfo(() => BytesField.Extract(default, default, default, default));
+
+                SapBufferLengthAttribute bufferLengthAttribute = propertyInfo.GetCustomAttribute<SapBufferLengthAttribute>();
+
+                arguments.Add(Expression.Constant(bufferLengthAttribute?.BufferLength ?? 0));
             }
             else if (propertyInfo.PropertyType == typeof(DateTime) || propertyInfo.PropertyType == typeof(DateTime?))
             {
@@ -123,7 +134,7 @@ namespace SapNwRfc.Internal
             MemberExpression fieldValue = Expression.Property(
                 Expression.Call(
                     method: extractMethod,
-                    arguments: new[] { interop, dataHandle, name }),
+                    arguments: arguments.ToArray()),
                 fieldValueProperty);
 
             return convertToNonNullable

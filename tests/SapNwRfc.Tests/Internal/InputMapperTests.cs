@@ -220,6 +220,34 @@ namespace SapNwRfc.Tests.Internal
         }
 
         [Fact]
+        public void Apply_ByteArray_ShouldMapAsByteArray()
+        {
+            // Arrange
+            RfcErrorInfo errorInfo;
+
+            // Act
+            InputMapper.Apply(_interopMock.Object, DataHandle, new { SomeByteArray = new byte[] { 0, 1, 2 } });
+
+            // Assert
+            _interopMock.Verify(x => x.SetBytes(DataHandle, "SOMEBYTEARRAY", new byte[] { 0, 1, 2 }, 3, out errorInfo));
+        }
+
+        [Fact]
+        public void Apply_NullByteArray_ShouldNotMapByteArray()
+        {
+            // Arrange
+            RfcErrorInfo errorInfo;
+
+            // Act
+            InputMapper.Apply(_interopMock.Object, DataHandle, new { SomeByteArray = (byte[])null });
+
+            // Assert
+            _interopMock.Verify(
+                x => x.SetBytes(It.IsAny<IntPtr>(), It.IsAny<string>(), It.IsAny<byte[]>(), It.IsAny<uint>(), out errorInfo),
+                Times.Never);
+        }
+
+        [Fact]
         public void Apply_Array_ShouldMapAsTable()
         {
             // Arrange
