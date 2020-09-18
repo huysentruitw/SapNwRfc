@@ -195,6 +195,7 @@ The [SapConnection](/src/SapNwRfc/SapConnection.cs) and [SapConnectionPool](/src
   | AppServerService             | ASSERV
   | MessageServerHost            | MSHOST
   | MessageServerService         | MSSERV
+  | R3Name                       | R3NAME
   | LogonGroup                   | GROUP
   | GatewayHost                  | GWHOST
   | GatewayService               | GWSERV
