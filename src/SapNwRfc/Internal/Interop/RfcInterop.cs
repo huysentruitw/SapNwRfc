@@ -163,6 +163,18 @@ namespace SapNwRfc.Internal.Interop
             => RfcSetBytes(dataHandle, name, value, valueLength, out errorInfo);
 
         [DllImport(SapNwRfcDllName, CharSet = CharSet.Unicode)]
+        private static extern RfcResultCode RfcGetChars(IntPtr dataHandle, string name, char[] charBuffer, uint bufferLength, out RfcErrorInfo errorInfo);
+
+        public virtual RfcResultCode GetChars(IntPtr dataHandle, string name, char[] charBuffer, uint bufferLength, out RfcErrorInfo errorInfo)
+            => RfcGetChars(dataHandle, name, charBuffer, bufferLength, out errorInfo);
+
+        [DllImport(SapNwRfcDllName, CharSet = CharSet.Unicode)]
+        private static extern RfcResultCode RfcSetChars(IntPtr dataHandle, string name, char[] value, uint valueLength, out RfcErrorInfo errorInfo);
+
+        public virtual RfcResultCode SetChars(IntPtr dataHandle, string name, char[] value, uint valueLength, out RfcErrorInfo errorInfo)
+            => RfcSetChars(dataHandle, name, value, valueLength, out errorInfo);
+
+        [DllImport(SapNwRfcDllName, CharSet = CharSet.Unicode)]
         private static extern RfcResultCode RfcGetStructure(IntPtr dataHandle, string name, out IntPtr structHandle, out RfcErrorInfo errorInfo);
 
         public virtual RfcResultCode GetStructure(IntPtr dataHandle, string name, out IntPtr structHandle, out RfcErrorInfo errorInfo)

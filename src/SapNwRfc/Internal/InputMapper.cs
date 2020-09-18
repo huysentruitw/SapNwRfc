@@ -106,6 +106,11 @@ namespace SapNwRfc.Internal
                 // new BytesField(name, value);
                 fieldConstructor = GetFieldConstructor(() => new BytesField(default, default));
             }
+            else if (propertyInfo.PropertyType == typeof(char[]))
+            {
+                // new CharsField(name, value);
+                fieldConstructor = GetFieldConstructor(() => new CharsField(default, default));
+            }
             else if (propertyInfo.PropertyType == typeof(DateTime) || propertyInfo.PropertyType == typeof(DateTime?))
             {
                 // new RfcDateField(name, (DateTime?)value);

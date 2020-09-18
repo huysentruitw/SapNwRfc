@@ -98,7 +98,13 @@ namespace SapNwRfc.Internal
                 extractMethod = GetMethodInfo(() => BytesField.Extract(default, default, default, default));
 
                 SapBufferLengthAttribute bufferLengthAttribute = propertyInfo.GetCustomAttribute<SapBufferLengthAttribute>();
+                arguments.Add(Expression.Constant(bufferLengthAttribute?.BufferLength ?? 0));
+            }
+            else if (propertyInfo.PropertyType == typeof(char[]))
+            {
+                extractMethod = GetMethodInfo(() => CharsField.Extract(default, default, default, default));
 
+                SapBufferLengthAttribute bufferLengthAttribute = propertyInfo.GetCustomAttribute<SapBufferLengthAttribute>();
                 arguments.Add(Expression.Constant(bufferLengthAttribute?.BufferLength ?? 0));
             }
             else if (propertyInfo.PropertyType == typeof(DateTime) || propertyInfo.PropertyType == typeof(DateTime?))

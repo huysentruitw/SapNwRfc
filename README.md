@@ -235,18 +235,19 @@ For each input and output model type, the library builds and caches a mapping fu
 
 SAP RFC parameter types don't have to be specified as they're converted by convention. Here's an overview of supported type mappings:
 
-| C# type     | SAP RFC type      | Remarks
-|:----------  |:----------------- |:---
-| `int`       | RFCTYPE_INT       | 4-byte integer
-| `long`      | RFCTYPE_INT8      | 8-byte integer
-| `double`    | RFCTYPE_FLOAT     | Floating point, double precision
-| `decimal`   | RFCTYPE_BCD       |
-| `string`    | RFCTYPE_CHAR      |
-| `byte[]`    | RFCTYPE_BYTE      | Raw binary data, fixed length. Has to be used in conjunction with the `[SapBufferLength]`-attribute
-| `DateTime?` | RFCTYPE_DATE      | Only the day, month and year value is used
-| `TimeSpan?` | RFCTYPE_TIME      | Only the hour, minute and second value is used
-| `T`         | RFCTYPE_STRUCTURE | Structures are constructed from nested objects (T) in the input or output model (see [example](#define-models-with-a-nested-structure))
-| `Array<T>`  | RFCTYPE_TABLE     | Tables are constructed from arrays of nested objects (T) in the input or output model (see [example](#define-models-with-a-nested-table))
+| C# type     | SAP RFC type                        | Remarks
+|:----------  |:----------------------------        |:---
+| `int`       | RFCTYPE_INT                         | 4-byte integer
+| `long`      | RFCTYPE_INT8                        | 8-byte integer
+| `double`    | RFCTYPE_FLOAT                       | Floating point, double precision
+| `decimal`   | RFCTYPE_BCD                         |
+| `string`    | RFCTYPE_STRING / RFCTYPE_CHAR / ... | Gets a data field as string 
+| `byte[]`    | RFCTYPE_BYTE                        | Raw binary data, fixed length. Has to be used in conjunction with the `[SapBufferLength]`-attribute
+| `char[]`    | RFCTYPE_CHAR                        | Char data, fixed length. Has to be used in conjunction with the `[SapBufferLength]`-attribute
+| `DateTime?` | RFCTYPE_DATE                        | Only the day, month and year value is used
+| `TimeSpan?` | RFCTYPE_TIME                        | Only the hour, minute and second value is used
+| `T`         | RFCTYPE_STRUCTURE                   | Structures are constructed from nested objects (T) in the input or output model (see [example](#define-models-with-a-nested-structure))
+| `Array<T>`  | RFCTYPE_TABLE                       | Tables are constructed from arrays of nested objects (T) in the input or output model (see [example](#define-models-with-a-nested-table))
 
 ## Connection pooling
 
