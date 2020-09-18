@@ -1,7 +1,5 @@
 using System;
 using System.Diagnostics.CodeAnalysis;
-using System.Runtime.InteropServices;
-using System.Text.RegularExpressions;
 using SapNwRfc.Internal.Interop;
 
 namespace SapNwRfc.Internal.Fields
@@ -31,7 +29,7 @@ namespace SapNwRfc.Internal.Fields
 
         public static BytesField Extract(RfcInterop interop, IntPtr dataHandle, string name, int bufferLength)
         {
-            byte[] buffer = new byte[bufferLength];
+            var buffer = new byte[bufferLength];
 
             RfcResultCode resultCode = interop.GetBytes(
                 dataHandle: dataHandle,
