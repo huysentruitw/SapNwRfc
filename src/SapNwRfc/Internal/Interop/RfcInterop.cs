@@ -8,7 +8,7 @@ namespace SapNwRfc.Internal.Interop
     [SuppressMessage("StyleCop.CSharp.ReadabilityRules", "SA1124:Do not use regions", Justification = "Exception for interop class")]
     internal class RfcInterop
     {
-        private const string SapNwRfcDllName = "sapnwrfc";
+        internal const string SapNwRfcDllName = "sapnwrfc";
 
         #region General
 
