@@ -1,4 +1,7 @@
+using System;
 using System.Threading;
+using AutoFixture;
+using FluentAssertions;
 using Moq;
 using SapNwRfc.Exceptions;
 using SapNwRfc.Pooling;
@@ -8,6 +11,7 @@ namespace SapNwRfc.Tests.Pooling
 {
     public sealed class SapPooledConnectionTests
     {
+        private static readonly Fixture Fixture = new Fixture();
         private readonly Mock<ISapConnectionPool> _connectionPoolMock = new Mock<ISapConnectionPool>();
         private readonly Mock<ISapConnection> _rfcConnectionMock = new Mock<ISapConnection>();
         private readonly Mock<ISapFunction> _rfcFunctionMock = new Mock<ISapFunction>();
@@ -65,6 +69,24 @@ namespace SapNwRfc.Tests.Pooling
             // Assert
             _connectionPoolMock.Verify(x => x.ReturnConnection(_rfcConnectionMock.Object), Times.Once);
             _connectionPoolMock.Verify(x => x.ForgetConnection(It.IsAny<ISapConnection>()), Times.Never);
+        }
+
+        [Fact]
+        public void InvokeFunction_CommunicationFailureDuringConnect_ShouldThrowException()
+        {
+            // Arrange
+            SapCommunicationFailedException exception = Fixture.Create<SapCommunicationFailedException>();
+            _connectionPoolMock
+                .SetupSequence(x => x.GetConnection(It.IsAny<CancellationToken>()))
+                .Throws(exception);
+            var connection = new SapPooledConnection(_connectionPoolMock.Object);
+
+            // Act
+            Action action = () => connection.InvokeFunction("SomeFunction");
+
+            // Assert
+            action.Should().Throw<SapCommunicationFailedException>()
+                .Which.Should().Be(exception);
         }
 
         [Fact]
