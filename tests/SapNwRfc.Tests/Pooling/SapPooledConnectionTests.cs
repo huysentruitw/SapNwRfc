@@ -28,7 +28,7 @@ namespace SapNwRfc.Tests.Pooling
         }
 
         [Fact]
-        public void Constructor_ShouldNotConnectionFromPool()
+        public void Constructor_ShouldNotGetConnectionFromPool()
         {
             // Act
             // ReSharper disable once ObjectCreationAsStatement
@@ -38,6 +38,19 @@ namespace SapNwRfc.Tests.Pooling
             _connectionPoolMock.Verify(x => x.GetConnection(It.IsAny<CancellationToken>()), Times.Never);
             _connectionPoolMock.Verify(x => x.ReturnConnection(It.IsAny<ISapConnection>()), Times.Never);
             _connectionPoolMock.Verify(x => x.ForgetConnection(It.IsAny<ISapConnection>()), Times.Never);
+        }
+
+        [Fact]
+        public void Dispose_RightAfterConstruction_ShouldNotReturnConnectionToPool()
+        {
+            // Arrange
+            var connection = new SapPooledConnection(_connectionPoolMock.Object);
+
+            // Act
+            connection.Dispose();
+
+            // Assert
+            _connectionPoolMock.Verify(x => x.ReturnConnection(It.IsAny<ISapConnection>()), Times.Never);
         }
 
         [Fact]
@@ -104,6 +117,20 @@ namespace SapNwRfc.Tests.Pooling
         }
 
         [Fact]
+        public void InvokeFunction_NoInput_NoOutput_CalledTwice_ShouldReuseUnderlyingConnection()
+        {
+            // Arrange
+            var connection = new SapPooledConnection(_connectionPoolMock.Object);
+
+            // Act
+            connection.InvokeFunction("SomeFunction");
+            connection.InvokeFunction("SomeFunction");
+
+            // Assert
+            _connectionPoolMock.Verify(x => x.GetConnection(It.IsAny<CancellationToken>()), Times.Once);
+        }
+
+        [Fact]
         public void InvokeFunction_NoInput_NoOutput_CommunicationFailure_ShouldReconnectAndRetry()
         {
             // Arrange
@@ -141,6 +168,21 @@ namespace SapNwRfc.Tests.Pooling
         }
 
         [Fact]
+        public void InvokeFunction_Input_NoOutput_CalledTwice_ShouldReuseUnderlyingConnection()
+        {
+            // Arrange
+            var connection = new SapPooledConnection(_connectionPoolMock.Object);
+            var input = new { Name = "123" };
+
+            // Act
+            connection.InvokeFunction("SomeFunction", input);
+            connection.InvokeFunction("SomeFunction", input);
+
+            // Assert
+            _connectionPoolMock.Verify(x => x.GetConnection(It.IsAny<CancellationToken>()), Times.Once);
+        }
+
+        [Fact]
         public void InvokeFunction_Input_NoOutput_CommunicationFailure_ShouldReconnectAndRetry()
         {
             // Arrange
@@ -175,6 +217,20 @@ namespace SapNwRfc.Tests.Pooling
             // Assert
             _rfcConnectionMock.Verify(x => x.CreateFunction("SomeFunction"), Times.Once);
             _rfcFunctionMock.Verify(x => x.Invoke<OutputModel>(), Times.Once);
+        }
+
+        [Fact]
+        public void InvokeFunction_NoInput_Output_CalledTwice_ShouldReuseUnderlyingConnection()
+        {
+            // Arrange
+            var connection = new SapPooledConnection(_connectionPoolMock.Object);
+
+            // Act
+            connection.InvokeFunction<OutputModel>("SomeFunction");
+            connection.InvokeFunction<OutputModel>("SomeFunction");
+
+            // Assert
+            _connectionPoolMock.Verify(x => x.GetConnection(It.IsAny<CancellationToken>()), Times.Once);
         }
 
         [Fact]

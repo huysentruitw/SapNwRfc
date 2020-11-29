@@ -152,12 +152,12 @@ namespace SapNwRfc.Pooling
                 // So, when the first connection did not expire, the rest didn't expire too.
                 if (!_idleConnections.TryPeek(out (ISapConnection Connection, DateTime ExpiresAtUtc) idleConnection) ||
                     idleConnection.ExpiresAtUtc > DateTime.UtcNow)
-                    return;
+                    break;
 
                 lock (_syncRoot)
                 {
                     if (!_idleConnections.TryPeek(out idleConnection) || idleConnection.ExpiresAtUtc > DateTime.UtcNow)
-                        return;
+                        break;
 
                     // Remove idling connection from queue
                     _idleConnections.TryDequeue(out _);

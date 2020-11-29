@@ -87,6 +87,28 @@ namespace SapNwRfc.Tests.Pooling
         }
 
         [Fact]
+        public void GetConnection_ConnectionFactoryReturnsNullFirst_ShouldRetryUntilFactoryReturnsConnection()
+        {
+            // Arrange
+            ISapConnection firstConnection = null;
+            ISapConnection secondConnection = Mock.Of<ISapConnection>();
+            var connectionFactoryMock = new Mock<Func<SapConnectionParameters, ISapConnection>>();
+            connectionFactoryMock.SetupSequence(x => x(It.IsAny<SapConnectionParameters>())).Returns(firstConnection);
+            connectionFactoryMock.SetupSequence(x => x(It.IsAny<SapConnectionParameters>())).Returns(secondConnection);
+
+            var pool = new SapConnectionPool(
+                ConnectionParameters,
+                poolSize: 1,
+                connectionFactory: connectionFactoryMock.Object);
+
+            // Act
+            ISapConnection connection = pool.GetConnection();
+
+            // Assert
+            connection.Should().Be(secondConnection);
+        }
+
+        [Fact]
         public void ReturnConnection_ExceedPoolSize_GetConnectionShouldBlockAndReturnPreviousConnection()
         {
             // Arrange
