@@ -14,6 +14,16 @@ namespace SapNwRfc.Tests.Pooling
         private static readonly SapConnectionParameters ConnectionParameters = new SapConnectionParameters();
 
         [Fact]
+        public void Constructor_WithoutConnectionFactory_ShouldNotThrow()
+        {
+            // Act
+            Action action = () => new SapConnectionPool(ConnectionParameters, connectionFactory: null);
+
+            // Assert
+            action.Should().NotThrow();
+        }
+
+        [Fact]
         public void GetConnection_ShouldOpenConnection()
         {
             // Arrange

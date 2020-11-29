@@ -271,6 +271,21 @@ namespace SapNwRfc.Tests.Pooling
         }
 
         [Fact]
+        public void InvokeFunction_Input_Output_CalledTwice_ShouldReuseUnderlyingConnection()
+        {
+            // Arrange
+            var connection = new SapPooledConnection(_connectionPoolMock.Object);
+            var input = new { Name = "123" };
+
+            // Act
+            connection.InvokeFunction<OutputModel>("SomeFunction", input);
+            connection.InvokeFunction<OutputModel>("SomeFunction", input);
+
+            // Assert
+            _connectionPoolMock.Verify(x => x.GetConnection(It.IsAny<CancellationToken>()), Times.Once);
+        }
+
+        [Fact]
         public void InvokeFunction_Input_Output_CommunicationFailure_ShouldReconnectAndRetry()
         {
             // Arrange
