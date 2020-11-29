@@ -25,6 +25,34 @@ You can either place the DLL's in your project output folder or put them in a fo
 
 On Windows, the 7.50 version of the SAP binaries also require you to install the 64-bit version of the Visual C++ 2013 Redistributable package which can be downloaded and installed from [here](https://www.microsoft.com/en-us/download/details.aspx?id=40784).
 
+### MacOSX and DYLD_LIBRARY_PATH
+
+When your application is started as a child-process (f.e. when running it using Visual Studio for Mac), it is possible that the `DYLD_LIBRARY_PATH` is not forwarded to the child-process. This is because of [this runtime protection](https://developer.apple.com/library/archive/documentation/Security/Conceptual/System_Integrity_Protection_Guide/RuntimeProtections/RuntimeProtections.html) Apple has added to OSX.
+
+The simplest solution to this problem is to make sure the SAP binaries are placed in the working directory of your application.
+
+or to use the [`NativeLibrary.SetDllImportResolver`](https://docs.microsoft.com/en-us/dotnet/api/system.runtime.interopservices.nativelibrary.setdllimportresolver?view=net-5.0) method in your application.
+
+A more flexible workaround is to set the import resolver for the `SapLibrary` using the [SetDllImportResolver](https://docs.microsoft.com/en-us/dotnet/api/system.runtime.interopservices.nativelibrary.setdllimportresolver?view=net-5.0)-method like this:
+
+```c#
+NativeLibrary.SetDllImportResolver(
+    assembly: typeof(SapLibrary).Assembly,
+    resolver: (string libraryName, Assembly assembly, DllImportSearchPath? searchPath) =>
+    {
+        if (libraryName == "sapnwrfc")
+        {
+            NativeLibrary.TryLoad(
+                libraryPath: Path.Combine("<your_sap_rfc_binaries_path>", libraryName),
+                handle: out IntPtr handle);
+
+            return handle;
+        }
+
+        return IntPtr.Zero;
+    });
+```
+
 ## Usage
 
 ### Connect with SAP NetWeaver
