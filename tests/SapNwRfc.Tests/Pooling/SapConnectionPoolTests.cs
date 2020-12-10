@@ -144,6 +144,46 @@ namespace SapNwRfc.Tests.Pooling
             sw.ElapsedMilliseconds.Should().BeGreaterThan(100);
             connection2.Should().NotBeNull();
             connection2.Should().Be(connection1);
+
+            connection1.Dispose();
+            connection2.Dispose();
+            pool.Dispose();
+        }
+
+        [Fact]
+        public void ReturnConnection_ExceedPoolSize_GetConnectionShouldBlockAndReturnFirstReturnedConnection()
+        {
+            // Arrange
+            var pool = new SapConnectionPool(
+                ConnectionParameters,
+                poolSize: 2,
+                connectionFactory: _ => Mock.Of<ISapConnection>());
+
+            ISapConnection connection1 = pool.GetConnection();
+            ISapConnection connection2 = pool.GetConnection();
+
+            // Act
+            Task.Run(async () =>
+            {
+                await Task.Delay(150);
+                pool.ReturnConnection(connection1);
+                await Task.Delay(150);
+                pool.ReturnConnection(connection2);
+            });
+            var sw = new Stopwatch();
+            sw.Start();
+            ISapConnection connection3 = pool.GetConnection();
+            sw.Stop();
+
+            // Assert
+            sw.ElapsedMilliseconds.Should().BeGreaterThan(100).And.BeLessThan(250);
+            connection3.Should().NotBeNull();
+            connection3.Should().Be(connection1);
+
+            connection1.Dispose();
+            connection2.Dispose();
+            connection3.Dispose();
+            pool.Dispose();
         }
 
         [Fact]
