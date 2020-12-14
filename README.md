@@ -5,7 +5,7 @@
 
 This cross-platform library allows you to call SAP NetWeaver RFC functions from .NET 5, .NET Core and the .NET Framework.
 
-Supported operating systems: Windows, Linux and macOS.
+The library is fully tested and production ready. Supported operating systems are Windows, Linux and macOS.
 
 Also supports connection pooling for more complex applications, see [below](#connection-pooling).
 
