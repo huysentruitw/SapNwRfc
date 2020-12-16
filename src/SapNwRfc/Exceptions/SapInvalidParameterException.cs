@@ -10,9 +10,9 @@ namespace SapNwRfc.Exceptions
         /// <summary>
         /// Initializes a new instance of the <see cref="SapInvalidParameterException"/> class.
         /// </summary>
-        /// <param name="message">The exception message.</param>
-        public SapInvalidParameterException(string message)
-            : base(RfcResultCode.RFC_INVALID_PARAMETER, message)
+        /// <param name="errorInfo">The RFC error info object.</param>
+        internal SapInvalidParameterException(RfcErrorInfo errorInfo)
+            : base(RfcResultCode.RFC_INVALID_PARAMETER, errorInfo)
         {
         }
     }

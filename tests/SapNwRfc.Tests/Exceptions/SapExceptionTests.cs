@@ -16,47 +16,29 @@ namespace SapNwRfc.Tests.Exceptions
         }
 
         [Fact]
-        public void Constructor_MessageOnly_ShouldSetMessageAndSetResultCodeToUnknownError()
+        public void Constructor_CodeAndErrorInfoWithMessage_ShouldSetMessageAndSetResultCode()
         {
             // Act
-            var exception = new SapException("Some message");
-
-            // Assert
-            exception.Message.Should().Be("SAP RFC Error with message: Some message");
-            exception.ResultCode.Should().Be(RfcResultCode.RFC_UNKNOWN_ERROR);
-        }
-
-        [Fact]
-        public void Constructor_NullMessage_ShouldSetFixedMessageAndSetResultCodeToUnknownError()
-        {
-            // Act
-            var exception = new SapException(null);
-
-            // Assert
-            exception.Message.Should().Be("SAP RFC Error");
-            exception.ResultCode.Should().Be(RfcResultCode.RFC_UNKNOWN_ERROR);
-        }
-
-        [Fact]
-        public void Constructor_MessageAndCode_ShouldSetMessageAndSetResultCode()
-        {
-            // Act
-            var exception = new SapException(RfcResultCode.RFC_NOT_FOUND, "Some message");
+            var errorInfo = new RfcErrorInfo { Message = "Some message" };
+            var exception = new SapException(RfcResultCode.RFC_NOT_FOUND, errorInfo);
 
             // Assert
             exception.Message.Should().Be("SAP RFC Error: RFC_NOT_FOUND with message: Some message");
-            exception.ResultCode.Should().Be(RfcResultCode.RFC_NOT_FOUND);
+            exception.ResultCode.Should().Be(SapResultCode.NotFound);
         }
 
-        [Fact]
-        public void Constructor_NullMessageAndCode_ShouldSetFixedMessageAndSetResultCode()
+        [Theory]
+        [InlineData("")]
+        [InlineData(null)]
+        public void Constructor_CodeAndErrorInfoWithoutMessage_ShouldSetFixedMessageAndSetResultCode(string message)
         {
             // Act
-            var exception = new SapException(RfcResultCode.RFC_CANCELED, null);
+            var errorInfo = new RfcErrorInfo { Message = message };
+            var exception = new SapException(RfcResultCode.RFC_CANCELED, errorInfo);
 
             // Assert
             exception.Message.Should().Be("SAP RFC Error: RFC_CANCELED");
-            exception.ResultCode.Should().Be(RfcResultCode.RFC_CANCELED);
+            exception.ResultCode.Should().Be(SapResultCode.Canceled);
         }
     }
 }

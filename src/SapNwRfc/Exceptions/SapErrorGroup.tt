@@ -1,0 +1,45 @@
+﻿<#@ template language="C#" #>
+<#@ import namespace="System.Collections.Generic" #>
+<#@ import namespace="System.Linq" #>
+<#@ import namespace="System.IO" #>
+<#@ import namespace="System.Text.RegularExpressions" #>
+<#@ include file="./../../../templates/EnumHelpers.tt" #>
+<#
+var enumValues = ExtractEnumValues("../Internal/Interop/RfcErrorGroup.cs").ToArray();
+#>
+using SapNwRfc.Internal.Interop;
+
+namespace SapNwRfc.Exceptions
+{
+    public enum SapErrorGroup
+    {
+        UnknownValue = -1,
+<#
+foreach (var enumValue in enumValues)
+{
+#>
+        <#= SnakeToPascalCasing(enumValue) #>,
+<#
+}
+#>
+    }
+
+    internal static class SapErrorGroupMapper
+    {
+        public static SapErrorGroup Map(RfcErrorGroup errorGroup)
+        {
+            switch (errorGroup)
+            {
+<#
+foreach (var enumValue in enumValues)
+{
+#>
+            case RfcErrorGroup.<#= enumValue #>: return SapErrorGroup.<#= SnakeToPascalCasing(enumValue) #>;
+<#
+}
+#>
+            default: return SapErrorGroup.UnknownValue;
+            }
+        }
+    }
+}

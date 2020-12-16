@@ -10,9 +10,9 @@ namespace SapNwRfc.Exceptions
         /// <summary>
         /// Initializes a new instance of the <see cref="SapCommunicationFailedException"/> class.
         /// </summary>
-        /// <param name="message">The exception message.</param>
-        public SapCommunicationFailedException(string message)
-            : base(RfcResultCode.RFC_COMMUNICATION_FAILURE, message)
+        /// <param name="errorInfo">The RFC error info object.</param>
+        internal SapCommunicationFailedException(RfcErrorInfo errorInfo)
+            : base(RfcResultCode.RFC_COMMUNICATION_FAILURE, errorInfo)
         {
         }
     }

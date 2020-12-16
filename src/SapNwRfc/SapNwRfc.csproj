@@ -29,4 +29,28 @@
     </PackageReference>
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="Exceptions\SapErrorGroup.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>SapErrorGroup.cs</LastGenOutput>
+    </None>
+    <None Update="Exceptions\SapResultCode.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>SapResultCode.cs</LastGenOutput>
+    </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="Exceptions\SapErrorGroup.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>SapErrorGroup.tt</DependentUpon>
+    </Compile>
+    <Compile Update="Exceptions\SapResultCode.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>SapResultCode.tt</DependentUpon>
+    </Compile>
+  </ItemGroup>
+
 </Project>
