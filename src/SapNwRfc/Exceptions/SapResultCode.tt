@@ -7,6 +7,7 @@
 <#
 var enumValues = ExtractEnumValues("../Internal/Interop/RfcResultCode.cs").ToArray();
 #>
+using System.Diagnostics.CodeAnalysis;
 using SapNwRfc.Internal.Interop;
 
 namespace SapNwRfc.Exceptions
@@ -24,6 +25,7 @@ foreach (var enumValue in enumValues)
 #>
     }
 
+    [ExcludeFromCodeCoverage]
     internal static class SapResultCodeMapper
     {
         public static SapResultCode Map(RfcResultCode resultCode)

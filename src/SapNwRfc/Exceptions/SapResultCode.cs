@@ -3,6 +3,7 @@
 // </auto-generated>
 
 
+using System.Diagnostics.CodeAnalysis;
 using SapNwRfc.Internal.Interop;
 
 namespace SapNwRfc.Exceptions
@@ -43,6 +44,7 @@ namespace SapNwRfc.Exceptions
         RcMaxValue,
     }
 
+    [ExcludeFromCodeCoverage]
     internal static class SapResultCodeMapper
     {
         public static SapResultCode Map(RfcResultCode resultCode)

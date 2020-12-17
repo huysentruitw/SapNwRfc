@@ -3,6 +3,7 @@
 // </auto-generated>
 
 
+using System.Diagnostics.CodeAnalysis;
 using SapNwRfc.Internal.Interop;
 
 namespace SapNwRfc.Exceptions
@@ -20,6 +21,7 @@ namespace SapNwRfc.Exceptions
         ExternalAuthorizationFailure,
     }
 
+    [ExcludeFromCodeCoverage]
     internal static class SapErrorGroupMapper
     {
         public static SapErrorGroup Map(RfcErrorGroup errorGroup)
