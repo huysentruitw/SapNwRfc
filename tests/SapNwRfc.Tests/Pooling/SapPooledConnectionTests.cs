@@ -11,7 +11,6 @@ namespace SapNwRfc.Tests.Pooling
 {
     public sealed class SapPooledConnectionTests
     {
-        private static readonly Fixture Fixture = new Fixture();
         private readonly Mock<ISapConnectionPool> _connectionPoolMock = new Mock<ISapConnectionPool>();
         private readonly Mock<ISapConnection> _rfcConnectionMock = new Mock<ISapConnection>();
         private readonly Mock<ISapFunction> _rfcFunctionMock = new Mock<ISapFunction>();
@@ -88,7 +87,7 @@ namespace SapNwRfc.Tests.Pooling
         public void InvokeFunction_CommunicationFailureDuringConnect_ShouldThrowException()
         {
             // Arrange
-            SapCommunicationFailedException exception = Fixture.Create<SapCommunicationFailedException>();
+            var exception = new SapCommunicationFailedException(default);
             _connectionPoolMock
                 .SetupSequence(x => x.GetConnection(It.IsAny<CancellationToken>()))
                 .Throws(exception);
@@ -140,7 +139,7 @@ namespace SapNwRfc.Tests.Pooling
             {
                 if (!shouldThrow) return;
                 shouldThrow = false;
-                throw new SapCommunicationFailedException(string.Empty);
+                throw new SapCommunicationFailedException(default);
             });
 
             // Act
@@ -193,7 +192,7 @@ namespace SapNwRfc.Tests.Pooling
             {
                 if (!shouldThrow) return;
                 shouldThrow = false;
-                throw new SapCommunicationFailedException(string.Empty);
+                throw new SapCommunicationFailedException(default);
             });
 
             // Act
@@ -243,7 +242,7 @@ namespace SapNwRfc.Tests.Pooling
             {
                 if (!shouldThrow) return;
                 shouldThrow = false;
-                throw new SapCommunicationFailedException(string.Empty);
+                throw new SapCommunicationFailedException(default);
             });
 
             // Act
@@ -296,7 +295,7 @@ namespace SapNwRfc.Tests.Pooling
             {
                 if (!shouldThrow) return;
                 shouldThrow = false;
-                throw new SapCommunicationFailedException(string.Empty);
+                throw new SapCommunicationFailedException(default);
             });
 
             // Act

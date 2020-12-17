@@ -15,12 +15,12 @@ namespace SapNwRfc.Internal.Interop
             beforeThrow?.Invoke();
 
             if (resultCode == RfcResultCode.RFC_COMMUNICATION_FAILURE)
-                throw new SapCommunicationFailedException(errorInfo.Message);
+                throw new SapCommunicationFailedException(errorInfo);
 
             if (resultCode == RfcResultCode.RFC_INVALID_PARAMETER)
-                throw new SapInvalidParameterException(errorInfo.Message);
+                throw new SapInvalidParameterException(errorInfo);
 
-            throw new SapException(resultCode, errorInfo.Message);
+            throw new SapException(resultCode, errorInfo);
         }
     }
 }
