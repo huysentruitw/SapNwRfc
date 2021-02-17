@@ -51,7 +51,7 @@ namespace SapNwRfc.Internal.Fields
 
             resultCode.ThrowOnError(errorInfo);
 
-            var rows = new T[rowCount];
+            var rows = rowCount == 0 ? Array.Empty<T>() : new T[rowCount];
 
             for (int i = 0; i < rowCount; i++)
             {
