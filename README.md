@@ -174,6 +174,32 @@ class SomeFunctionResult
 }
 ```
 
+### RFC Server Generic Handler
+
+```csharp
+string connectionString = "AppServerHost=MY_SERVER_HOST; SystemNumber=00; User=MY_SAP_USER; Password=SECRET; Client=100; Language=EN; PoolSize=5; Trace=8";
+
+SapServer.InstallGenericServerFunctionHandler(connectionString, function =>
+{
+    switch (function.Name)
+    {
+        case "BAPI_SOME_FUNCTION_NAME":
+            var parameters = function.GetParameters<SomeFunctionParameters>();
+            function.SetResult(new SomeFunctionResult { Abc = "Some Value" });
+        break;
+    }
+});
+```
+
+### RFC Server
+
+```csharp
+string connectionString = "GWHOST=MY_GW_HOST; GWSERV=MY_GW_SERV; PROGRAM_ID=MY_PROGRAM_ID; REG_COUNT=1";
+
+using var server = SapServer.Create(connectionString);
+server.Launch();
+```
+
 ### Ensure the SAP RFC SDK binaries are present
 
 ```csharp

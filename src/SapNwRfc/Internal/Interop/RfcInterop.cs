@@ -1,6 +1,7 @@
 using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
+using System.Text;
 
 namespace SapNwRfc.Internal.Interop
 {
@@ -57,10 +58,27 @@ namespace SapNwRfc.Internal.Interop
             => RfcGetFunctionDesc(rfcHandle, funcName, out errorInfo);
 
         [DllImport(SapNwRfcDllName, CharSet = CharSet.Unicode)]
+        private static extern IntPtr RfcDescribeFunction(IntPtr rfcHandle, out RfcErrorInfo errorInfo);
+
+        public virtual IntPtr DescribeFunction(IntPtr rfcHandle, out RfcErrorInfo errorInfo)
+            => RfcDescribeFunction(rfcHandle, out errorInfo);
+
+        [DllImport(SapNwRfcDllName, CharSet = CharSet.Unicode)]
         private static extern RfcResultCode RfcDestroyFunctionDesc(IntPtr rfcHandle, out RfcErrorInfo errorInfo);
 
         public virtual RfcResultCode DestroyFunctionDesc(IntPtr rfcHandle, out RfcErrorInfo errorInfo)
             => RfcDestroyFunctionDesc(rfcHandle, out errorInfo);
+
+        [DllImport(SapNwRfcDllName, CharSet = CharSet.Unicode)]
+        private static extern RfcResultCode RfcGetFunctionName(IntPtr rfcHandle, StringBuilder funcName, out RfcErrorInfo errorInfo);
+
+        public virtual RfcResultCode GetFunctionName(IntPtr rfcHandle, out string funcName, out RfcErrorInfo errorInfo)
+        {
+            var buffer = new StringBuilder(30); // 30 + 1?
+            RfcResultCode resultCode = RfcGetFunctionName(rfcHandle, buffer, out errorInfo);
+            funcName = buffer.ToString();
+            return resultCode;
+        }
 
         [DllImport(SapNwRfcDllName, CharSet = CharSet.Unicode)]
         private static extern IntPtr RfcCreateFunction(IntPtr funcDescHandle, out RfcErrorInfo errorInfo);
@@ -215,6 +233,46 @@ namespace SapNwRfc.Internal.Interop
 
         public virtual IntPtr AppendNewRow(IntPtr tableHandle, out RfcErrorInfo errorInfo)
             => RfcAppendNewRow(tableHandle, out errorInfo);
+
+        #endregion
+
+        #region Server
+
+        [UnmanagedFunctionPointer(CallingConvention.StdCall)]
+        public delegate RfcResultCode RfcServerFunction(IntPtr connectionHandle, IntPtr functionHandle, out RfcErrorInfo errorInfo);
+
+        [UnmanagedFunctionPointer(CallingConvention.StdCall, CharSet = CharSet.Unicode)]
+        public delegate RfcResultCode RfcFunctionDescriptionCallback(string functionName, ref RfcAttributes attributes, out IntPtr funcDescHandle);
+
+        [DllImport(SapNwRfcDllName)]
+        private static extern RfcResultCode RfcInstallGenericServerFunction(RfcServerFunction serverFunction, RfcFunctionDescriptionCallback funcDescPointer, out RfcErrorInfo errorInfo);
+
+        public virtual RfcResultCode InstallGenericServerFunction(RfcServerFunction serverFunction, RfcFunctionDescriptionCallback funcDescPointer, out RfcErrorInfo errorInfo)
+            => RfcInstallGenericServerFunction(serverFunction, funcDescPointer, out errorInfo);
+
+        [DllImport(SapNwRfcDllName)]
+        private static extern IntPtr RfcCreateServer(RfcConnectionParameter[] connectionParams, uint paramCount, out RfcErrorInfo errorInfo);
+
+        public virtual IntPtr CreateServer(RfcConnectionParameter[] connectionParams, uint paramCount, out RfcErrorInfo errorInfo)
+            => RfcCreateServer(connectionParams, paramCount, out errorInfo);
+
+        [DllImport(SapNwRfcDllName)]
+        private static extern RfcResultCode RfcDestroyServer(IntPtr rfcHandle, out RfcErrorInfo errorInfo);
+
+        public virtual RfcResultCode DestroyServer(IntPtr rfcHandle, out RfcErrorInfo errorInfo)
+            => RfcDestroyServer(rfcHandle, out errorInfo);
+
+        [DllImport(SapNwRfcDllName)]
+        private static extern RfcResultCode RfcLaunchServer(IntPtr rfcHandle, out RfcErrorInfo errorInfo);
+
+        public virtual RfcResultCode LaunchServer(IntPtr rfcHandle, out RfcErrorInfo errorInfo)
+            => RfcLaunchServer(rfcHandle, out errorInfo);
+
+        [DllImport(SapNwRfcDllName)]
+        private static extern RfcResultCode RfcShutdownServer(IntPtr rfcHandle, uint timeout, out RfcErrorInfo errorInfo);
+
+        public virtual RfcResultCode ShutdownServer(IntPtr rfcHandle, uint timeout, out RfcErrorInfo errorInfo)
+            => RfcShutdownServer(rfcHandle, timeout, out errorInfo);
 
         #endregion
     }
