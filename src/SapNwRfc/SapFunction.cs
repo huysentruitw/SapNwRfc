@@ -30,14 +30,9 @@ namespace SapNwRfc
         {
             IntPtr functionHandle = interop.CreateFunction(
                 funcDescHandle: functionDescriptionHandle,
-                errorInfo: out RfcErrorInfo createFunctionErrorInfo);
+                errorInfo: out RfcErrorInfo errorInfo);
 
-            RfcResultCode resultCode = interop.DestroyFunctionDesc(
-                rfcHandle: functionDescriptionHandle,
-                errorInfo: out RfcErrorInfo destroyFunctionDescErrorInfo);
-
-            createFunctionErrorInfo.ThrowOnError();
-            resultCode.ThrowOnError(destroyFunctionDescErrorInfo);
+            errorInfo.ThrowOnError();
 
             return new SapFunction(
                 interop: interop,
