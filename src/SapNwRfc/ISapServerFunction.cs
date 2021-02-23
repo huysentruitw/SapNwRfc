@@ -8,7 +8,15 @@ namespace SapNwRfc
         /// <summary>
         /// Gets the Name of the function.
         /// </summary>
-        string Name { get; }
+        /// <returns>the name of the function</returns>
+        string GetName();
+
+        /// <summary>
+        /// Returns true if the <paramref name="parameterName"/> exists.
+        /// </summary>
+        /// <param name="parameterName">The parameter name.</param>
+        /// <returns>Whether the parameter name exists.</returns>
+        bool HasParameter(string parameterName);
 
         /// <summary>
         /// Gets the parameters of the function.

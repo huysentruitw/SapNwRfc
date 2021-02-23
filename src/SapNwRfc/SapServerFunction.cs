@@ -11,19 +11,42 @@ namespace SapNwRfc
     {
         private readonly RfcInterop _interop;
         private readonly IntPtr _functionHandle;
+        private readonly IntPtr _functionDescriptionHandle;
 
         internal SapServerFunction(
             RfcInterop interop,
             IntPtr functionHandle,
-            string name)
+            IntPtr functionDescriptionHandle)
         {
             _interop = interop;
             _functionHandle = functionHandle;
-            Name = name;
+            _functionDescriptionHandle = functionDescriptionHandle;
         }
 
         /// <inheritdoc cref="ISapServerFunction"/>
-        public string Name { get; }
+        public string GetName()
+        {
+            RfcResultCode resultCode = _interop.GetFunctionName(
+                rfcHandle: _functionDescriptionHandle,
+                funcName: out string functionName,
+                errorInfo: out RfcErrorInfo errorInfo);
+
+            resultCode.ThrowOnError(errorInfo);
+
+            return functionName;
+        }
+
+        /// <inheritdoc cref="ISapFunction"/>
+        public bool HasParameter(string parameterName)
+        {
+            RfcResultCode resultCode = _interop.GetParameterDescByName(
+                funcDescHandle: _functionDescriptionHandle,
+                parameterName: parameterName,
+                parameterDescHandle: out IntPtr parameterDescHandle,
+                errorInfo: out RfcErrorInfo errorInfo);
+
+            return resultCode == RfcResultCode.RFC_OK;
+        }
 
         /// <inheritdoc cref="ISapServerFunction"/>
         public TOutput GetParameters<TOutput>()

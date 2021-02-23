@@ -91,7 +91,7 @@ namespace SapNwRfc
         /// </summary>
         /// <param name="connectionString">The connection string.</param>
         /// <param name="action">The RFC server function handler.</param>
-        public static void InstallGenericServerFunctionHandler(string connectionString, Action<ISapServerFunction> action)
+        public static void InstallGenericServerFunctionHandler(string connectionString, Action<ISapServerConnection, ISapServerFunction> action)
         {
             InstallGenericServerFunctionHandler(SapConnectionParameters.Parse(connectionString), action);
         }
@@ -101,12 +101,12 @@ namespace SapNwRfc
         /// </summary>
         /// <param name="parameters">The connection parameters.</param>
         /// <param name="action">The RFC server function handler.</param>
-        public static void InstallGenericServerFunctionHandler(SapConnectionParameters parameters, Action<ISapServerFunction> action)
+        public static void InstallGenericServerFunctionHandler(SapConnectionParameters parameters, Action<ISapServerConnection, ISapServerFunction> action)
         {
             InstallGenericServerFunctionHandler(new RfcInterop(), parameters, action);
         }
 
-        internal static void InstallGenericServerFunctionHandler(RfcInterop interop, SapConnectionParameters parameters, Action<ISapServerFunction> action)
+        internal static void InstallGenericServerFunctionHandler(RfcInterop interop, SapConnectionParameters parameters, Action<ISapServerConnection, ISapServerFunction> action)
         {
             RfcResultCode resultCode = interop.InstallGenericServerFunction(
                 serverFunction: (IntPtr connectionHandle, IntPtr functionHandle, out RfcErrorInfo errorInfo)
@@ -118,7 +118,7 @@ namespace SapNwRfc
             resultCode.ThrowOnError(installFunctionErrorInfo);
         }
 
-        private static RfcResultCode HandleGenericFunction(RfcInterop interop, Action<ISapServerFunction> action, IntPtr connectionHandle, IntPtr functionHandle, out RfcErrorInfo errorInfo)
+        private static RfcResultCode HandleGenericFunction(RfcInterop interop, Action<ISapServerConnection, ISapServerFunction> action, IntPtr connectionHandle, IntPtr functionHandle, out RfcErrorInfo errorInfo)
         {
             IntPtr functionDesc = interop.DescribeFunction(
                 rfcHandle: functionHandle,
@@ -130,22 +130,12 @@ namespace SapNwRfc
                 return functionDescErrorInfo.Code;
             }
 
-            RfcResultCode functionNameResultCode = interop.GetFunctionName(
-                rfcHandle: functionDesc,
-                funcName: out string functionName,
-                errorInfo: out RfcErrorInfo functionNameErrorInfo);
-
-            if (functionNameResultCode != RfcResultCode.RFC_OK)
-            {
-                errorInfo = functionNameErrorInfo;
-                return functionNameResultCode;
-            }
-
-            var function = new SapServerFunction(interop, functionHandle, functionName);
+            var connection = new SapServerConnection(interop, connectionHandle);
+            var function = new SapServerFunction(interop, functionHandle, functionDesc);
 
             try
             {
-                action(function);
+                action(connection, function);
 
                 errorInfo = default;
                 return RfcResultCode.RFC_OK;
@@ -178,7 +168,7 @@ namespace SapNwRfc
 
             funcDescHandle = interop.GetFunctionDesc(
                 rfcHandle: connection,
-                functionName,
+                funcName: functionName,
                 errorInfo: out RfcErrorInfo errorInfo);
 
             RfcResultCode resultCode = interop.CloseConnection(
