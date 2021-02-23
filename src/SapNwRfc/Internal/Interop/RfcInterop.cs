@@ -47,6 +47,12 @@ namespace SapNwRfc.Internal.Interop
         public virtual RfcResultCode Ping(IntPtr rfcHandle, out RfcErrorInfo errorInfo)
             => RfcPing(rfcHandle, out errorInfo);
 
+        [DllImport(SapNwRfcDllName)]
+        private static extern RfcResultCode RfcGetConnectionAttributes(IntPtr rfcHandle, out RfcAttributes attributes, out RfcErrorInfo errorInfo);
+
+        public virtual RfcResultCode GetConnectionAttributes(IntPtr rfcHandle, out RfcAttributes attributes, out RfcErrorInfo errorInfo)
+            => RfcGetConnectionAttributes(rfcHandle, out attributes, out errorInfo);
+
         #endregion
 
         #region Function

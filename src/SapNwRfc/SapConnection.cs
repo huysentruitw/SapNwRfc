@@ -109,6 +109,19 @@ namespace SapNwRfc
         }
 
         /// <inheritdoc cref="ISapConnection"/>
+        public SapConnectionAttributes GetAttributes()
+        {
+            RfcResultCode resultCode = _interop.GetConnectionAttributes(
+                rfcHandle: _rfcConnectionHandle,
+                attributes: out RfcAttributes attributes,
+                errorInfo: out RfcErrorInfo errorInfo);
+
+            resultCode.ThrowOnError(errorInfo);
+
+            return new SapConnectionAttributes(attributes);
+        }
+
+        /// <inheritdoc cref="ISapConnection"/>
         public ISapFunction CreateFunction(string name)
         {
             IntPtr functionDescriptionHandle = _interop.GetFunctionDesc(

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 
 namespace SapNwRfc
 {
@@ -28,6 +28,12 @@ namespace SapNwRfc
         /// </summary>
         /// <returns>True when the connection is still alive. False when not.</returns>
         bool Ping();
+
+        /// <summary>
+        /// Gets the connection attributes of an connected connection.
+        /// </summary>
+        /// <returns>The connection attributes.</returns>
+        SapConnectionAttributes GetAttributes();
 
         /// <summary>
         /// Creates a <see cref="SapFunction"/> object for invoking the remote function.
