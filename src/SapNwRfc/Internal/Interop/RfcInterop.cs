@@ -92,6 +92,12 @@ namespace SapNwRfc.Internal.Interop
         public virtual RfcResultCode DestroyFunction(IntPtr funcHandle, out RfcErrorInfo errorInfo)
             => RfcDestroyFunction(funcHandle, out errorInfo);
 
+        [DllImport(SapNwRfcDllName, CharSet = CharSet.Unicode)]
+        private static extern RfcResultCode RfcGetParameterDescByName(IntPtr funcDescHandle, string parameterName, out IntPtr parameterDescHandle, out RfcErrorInfo errorInfo);
+
+        public virtual RfcResultCode GetParameterDescByName(IntPtr funcDescHandle, string parameterName, out IntPtr parameterDescHandle, out RfcErrorInfo errorInfo)
+            => RfcGetParameterDescByName(funcDescHandle, parameterName, out parameterDescHandle, out errorInfo);
+
         [DllImport(SapNwRfcDllName)]
         private static extern RfcResultCode RfcInvoke(IntPtr rfcHandle, IntPtr funcHandle, out RfcErrorInfo errorInfo);
 
