@@ -51,9 +51,10 @@ namespace SapNwRfc.Pooling
         /// <inheritdoc cref="ISapPooledConnection"/>
         public void InvokeFunction(string name, CancellationToken cancellationToken = default)
         {
+            _connection = _connection ?? _pool.GetConnection(cancellationToken);
+
             try
             {
-                _connection = _connection ?? _pool.GetConnection(cancellationToken);
                 using (ISapFunction function = _connection.CreateFunction(name))
                     function.Invoke();
             }

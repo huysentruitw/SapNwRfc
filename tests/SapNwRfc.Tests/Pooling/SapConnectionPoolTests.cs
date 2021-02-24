@@ -14,6 +14,16 @@ namespace SapNwRfc.Tests.Pooling
         private static readonly SapConnectionParameters ConnectionParameters = new SapConnectionParameters();
 
         [Fact]
+        public void Constructor_WithoutConnectionFactory_ShouldNotThrow()
+        {
+            // Act
+            Action action = () => new SapConnectionPool(ConnectionParameters, connectionFactory: null);
+
+            // Assert
+            action.Should().NotThrow();
+        }
+
+        [Fact]
         public void GetConnection_ShouldOpenConnection()
         {
             // Arrange
@@ -87,6 +97,28 @@ namespace SapNwRfc.Tests.Pooling
         }
 
         [Fact]
+        public void GetConnection_ConnectionFactoryReturnsNullFirst_ShouldRetryUntilFactoryReturnsConnection()
+        {
+            // Arrange
+            ISapConnection firstConnection = null;
+            ISapConnection secondConnection = Mock.Of<ISapConnection>();
+            var connectionFactoryMock = new Mock<Func<SapConnectionParameters, ISapConnection>>();
+            connectionFactoryMock.SetupSequence(x => x(It.IsAny<SapConnectionParameters>())).Returns(firstConnection);
+            connectionFactoryMock.SetupSequence(x => x(It.IsAny<SapConnectionParameters>())).Returns(secondConnection);
+
+            var pool = new SapConnectionPool(
+                ConnectionParameters,
+                poolSize: 1,
+                connectionFactory: connectionFactoryMock.Object);
+
+            // Act
+            ISapConnection connection = pool.GetConnection();
+
+            // Assert
+            connection.Should().Be(secondConnection);
+        }
+
+        [Fact]
         public void ReturnConnection_ExceedPoolSize_GetConnectionShouldBlockAndReturnPreviousConnection()
         {
             // Arrange
@@ -112,6 +144,46 @@ namespace SapNwRfc.Tests.Pooling
             sw.ElapsedMilliseconds.Should().BeGreaterThan(100);
             connection2.Should().NotBeNull();
             connection2.Should().Be(connection1);
+
+            connection1.Dispose();
+            connection2.Dispose();
+            pool.Dispose();
+        }
+
+        [Fact]
+        public void ReturnConnection_ExceedPoolSize_GetConnectionShouldBlockAndReturnFirstReturnedConnection()
+        {
+            // Arrange
+            var pool = new SapConnectionPool(
+                ConnectionParameters,
+                poolSize: 2,
+                connectionFactory: _ => Mock.Of<ISapConnection>());
+
+            ISapConnection connection1 = pool.GetConnection();
+            ISapConnection connection2 = pool.GetConnection();
+
+            // Act
+            Task.Run(async () =>
+            {
+                await Task.Delay(150);
+                pool.ReturnConnection(connection1);
+                await Task.Delay(150);
+                pool.ReturnConnection(connection2);
+            });
+            var sw = new Stopwatch();
+            sw.Start();
+            ISapConnection connection3 = pool.GetConnection();
+            sw.Stop();
+
+            // Assert
+            sw.ElapsedMilliseconds.Should().BeGreaterThan(100).And.BeLessThan(250);
+            connection3.Should().NotBeNull();
+            connection3.Should().Be(connection1);
+
+            connection1.Dispose();
+            connection2.Dispose();
+            connection3.Dispose();
+            pool.Dispose();
         }
 
         [Fact]

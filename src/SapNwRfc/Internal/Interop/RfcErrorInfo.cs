@@ -9,7 +9,7 @@ namespace SapNwRfc.Internal.Interop
         public RfcResultCode Code;
 
         [MarshalAs(UnmanagedType.I4)]
-        public RfcErrorGroup Group;
+        public RfcErrorGroup ErrorGroup;
 
         [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 128)]
         public string Key;

@@ -180,6 +180,12 @@ namespace SapNwRfc
         public string MessageServerService { get; set; }
 
         /// <summary>
+        /// Gets or sets the R/3 Name parameter.
+        /// </summary>
+        [SapName("R3NAME")]
+        public string R3Name { get; set; }
+
+        /// <summary>
         /// Gets or sets the Logon Group parameter.
         /// </summary>
         [SapName("GROUP")]

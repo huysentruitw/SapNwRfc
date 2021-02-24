@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using SapNwRfc.Internal.Interop;
@@ -15,6 +15,9 @@ namespace SapNwRfc.Internal.Fields
 
         public override void Apply(RfcInterop interop, IntPtr dataHandle)
         {
+            if (Value == null)
+                return;
+
             RfcResultCode resultCode = interop.GetTable(
                 dataHandle: dataHandle,
                 name: Name,
@@ -48,7 +51,7 @@ namespace SapNwRfc.Internal.Fields
 
             resultCode.ThrowOnError(errorInfo);
 
-            var rows = new T[rowCount];
+            var rows = rowCount == 0 ? Array.Empty<T>() : new T[rowCount];
 
             for (int i = 0; i < rowCount; i++)
             {

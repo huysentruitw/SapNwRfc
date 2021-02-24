@@ -106,6 +106,62 @@ namespace SapNwRfc.Tests.Internal
         }
 
         [Fact]
+        public void Apply_ByteArray_ShouldMapAsByteArray()
+        {
+            // Arrange
+            RfcErrorInfo errorInfo;
+
+            // Act
+            InputMapper.Apply(_interopMock.Object, DataHandle, new { SomeByteArray = new byte[] { 0, 1, 2 } });
+
+            // Assert
+            _interopMock.Verify(x => x.SetBytes(DataHandle, "SOMEBYTEARRAY", new byte[] { 0, 1, 2 }, 3, out errorInfo));
+        }
+
+        [Fact]
+        public void Apply_NullByteArray_ShouldNotMapByteArray()
+        {
+            // Arrange
+            RfcErrorInfo errorInfo;
+
+            // Act
+            InputMapper.Apply(_interopMock.Object, DataHandle, new { SomeByteArray = (byte[])null });
+
+            // Assert
+            _interopMock.Verify(
+                x => x.SetBytes(It.IsAny<IntPtr>(), It.IsAny<string>(), It.IsAny<byte[]>(), It.IsAny<uint>(), out errorInfo),
+                Times.Never);
+        }
+
+        [Fact]
+        public void Apply_CharArray_ShouldMapAsCharArray()
+        {
+            // Arrange
+            RfcErrorInfo errorInfo;
+
+            // Act
+            InputMapper.Apply(_interopMock.Object, DataHandle, new { SomeCharArray = new char[] { '0', '1', '2' } });
+
+            // Assert
+            _interopMock.Verify(x => x.SetChars(DataHandle, "SOMECHARARRAY", new char[] { '0', '1', '2' }, 3, out errorInfo));
+        }
+
+        [Fact]
+        public void Apply_NullCharArray_ShouldNotMapCharArray()
+        {
+            // Arrange
+            RfcErrorInfo errorInfo;
+
+            // Act
+            InputMapper.Apply(_interopMock.Object, DataHandle, new { SomeCharArray = (char[])null });
+
+            // Assert
+            _interopMock.Verify(
+                x => x.GetChars(It.IsAny<IntPtr>(), It.IsAny<string>(), It.IsAny<char[]>(), It.IsAny<uint>(), out errorInfo),
+                Times.Never);
+        }
+
+        [Fact]
         public void Apply_DateTime_ShouldMapAsDate()
         {
             // Arrange
@@ -224,7 +280,7 @@ namespace SapNwRfc.Tests.Internal
         {
             // Arrange
             RfcErrorInfo errorInfo;
-            var model = new { SomeArray = Fixture.CreateMany<ArrayElement>(2).ToArray() };
+            var model = new TableModel { SomeArray = Fixture.CreateMany<ArrayElement>(2).ToArray() };
 
             // Act
             InputMapper.Apply(_interopMock.Object, DataHandle, model);
@@ -244,7 +300,7 @@ namespace SapNwRfc.Tests.Internal
             RfcErrorInfo errorInfo;
             _interopMock.Setup(x => x.GetTable(DataHandle, "SOMEARRAY", out tableHandle, out errorInfo));
             _interopMock.Setup(x => x.AppendNewRow(It.IsAny<IntPtr>(), out errorInfo)).Returns(lineHandle);
-            var model = new { SomeArray = Fixture.CreateMany<ArrayElement>(numberOfRows).ToArray() };
+            var model = new TableModel { SomeArray = Fixture.CreateMany<ArrayElement>(numberOfRows).ToArray() };
 
             // Act
             InputMapper.Apply(_interopMock.Object, DataHandle, model);
@@ -258,6 +314,21 @@ namespace SapNwRfc.Tests.Internal
                     x => x.SetString(lineHandle, "VALUE", element.Value, length, out errorInfo),
                     Times.Once);
             }
+        }
+
+        [Fact]
+        public void Apply_NullArray_ShouldNotMapAsTable()
+        {
+            // Arrange
+            RfcErrorInfo errorInfo;
+            var model = new TableModel();
+
+            // Act
+            InputMapper.Apply(_interopMock.Object, DataHandle, model);
+
+            // Assert
+            IntPtr tableHandle;
+            _interopMock.Verify(x => x.GetTable(DataHandle, It.IsAny<string>(), out tableHandle, out errorInfo), Times.Never);
         }
 
         [Fact]
@@ -329,6 +400,11 @@ namespace SapNwRfc.Tests.Internal
             // Assert
             action.Should().Throw<InvalidOperationException>()
                 .WithMessage("No matching field constructor found");
+        }
+
+        private sealed class TableModel
+        {
+            public ArrayElement[] SomeArray { get; set; }
         }
 
         private sealed class ArrayElement

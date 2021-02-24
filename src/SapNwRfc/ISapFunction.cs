@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 
 namespace SapNwRfc
 {
@@ -7,6 +7,13 @@ namespace SapNwRfc
     /// </summary>
     public interface ISapFunction : IDisposable
     {
+        /// <summary>
+        /// Returns true if the <paramref name="parameterName"/> exists.
+        /// </summary>
+        /// <param name="parameterName">The parameter name.</param>
+        /// <returns>Whether the parameter name exists.</returns>
+        bool HasParameter(string parameterName);
+
         /// <summary>
         /// Invokes the remote function.
         /// </summary>

@@ -11,15 +11,18 @@ namespace SapNwRfc
     {
         private readonly RfcInterop _interop;
         private readonly IntPtr _rfcConnectionHandle;
+        private readonly IntPtr _functionDescriptionHandle;
         private readonly IntPtr _functionHandle;
 
         private SapFunction(
             RfcInterop interop,
             IntPtr rfcConnectionHandle,
+            IntPtr functionDescriptionHandle,
             IntPtr functionHandle)
         {
             _interop = interop;
             _rfcConnectionHandle = rfcConnectionHandle;
+            _functionDescriptionHandle = functionDescriptionHandle;
             _functionHandle = functionHandle;
         }
 
@@ -37,6 +40,7 @@ namespace SapNwRfc
             return new SapFunction(
                 interop: interop,
                 rfcConnectionHandle: rfcConnectionHandle,
+                functionDescriptionHandle: functionDescriptionHandle,
                 functionHandle: functionHandle);
         }
 
@@ -50,6 +54,18 @@ namespace SapNwRfc
                 out RfcErrorInfo errorInfo);
 
             resultCode.ThrowOnError(errorInfo);
+        }
+
+        /// <inheritdoc cref="ISapFunction"/>
+        public bool HasParameter(string parameterName)
+        {
+            RfcResultCode resultCode = _interop.GetParameterDescByName(
+                funcDescHandle: _functionDescriptionHandle,
+                parameterName: parameterName,
+                parameterDescHandle: out IntPtr parameterDescHandle,
+                errorInfo: out RfcErrorInfo errorInfo);
+
+            return resultCode == RfcResultCode.RFC_OK;
         }
 
         /// <inheritdoc cref="ISapFunction"/>

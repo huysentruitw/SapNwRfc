@@ -217,6 +217,122 @@ namespace SapNwRfc.Tests.Internal
             public decimal DecimalValue { get; set; }
         }
 
+        private delegate void GetBytesCallback(IntPtr dataHandle, string name, byte[] buffer, uint bufferLength, out RfcErrorInfo errorInfo);
+
+        [Theory]
+        [InlineData(new byte[] { 1, 2, 3 })]
+        public void Extract_ByteArray_ShouldMapFromByteArray(byte[] value)
+        {
+            // Arrange
+            RfcErrorInfo errorInfo;
+
+            _interopMock
+               .Setup(x => x.GetBytes(It.IsAny<IntPtr>(), It.IsAny<string>(), It.IsAny<byte[]>(), It.IsAny<uint>(), out errorInfo))
+               .Callback(new GetBytesCallback((IntPtr dataHandle, string name, byte[] buffer, uint bufferLength, out RfcErrorInfo ei) =>
+               {
+                   Array.Copy(value, buffer, value.Length);
+                   ei = default;
+               }));
+
+            // Act
+            BytesModel result = OutputMapper.Extract<BytesModel>(_interopMock.Object, DataHandle);
+
+            // Assert
+            _interopMock.Verify(
+                x => x.GetBytes(DataHandle, "BYTESVALUE", It.IsAny<byte[]>(), 3, out errorInfo),
+                Times.Once);
+            result.Should().NotBeNull();
+            result.BytesValue.Should().BeEquivalentTo(value);
+        }
+
+        [Fact]
+        public void Extract_EmptyByteArray_ShouldMapAsEmptyByteArray()
+        {
+            // Arrange
+            RfcErrorInfo errorInfo;
+            uint bufferLength = 0;
+            _interopMock.Setup(x => x.GetBytes(It.IsAny<IntPtr>(), It.IsAny<string>(), It.IsAny<byte[]>(), bufferLength, out errorInfo));
+
+            // Act
+            EmptyBytesModel result = OutputMapper.Extract<EmptyBytesModel>(_interopMock.Object, DataHandle);
+
+            // Assert
+            _interopMock.Verify(
+                x => x.GetBytes(DataHandle, "BYTESVALUE", Array.Empty<byte>(), 0, out errorInfo),
+                Times.Never);
+            result.Should().NotBeNull();
+            result.BytesValue.Should().BeEmpty();
+        }
+
+        private sealed class BytesModel
+        {
+            [SapBufferLength(3)]
+            public byte[] BytesValue { get; set; }
+        }
+
+        private sealed class EmptyBytesModel
+        {
+            public byte[] BytesValue { get; set; }
+        }
+
+        private delegate void GetCharsCallback(IntPtr dataHandle, string name, char[] buffer, uint bufferLength, out RfcErrorInfo errorInfo);
+
+        [Theory]
+        [InlineData(new char[] { '1', '2', '3' })]
+        public void Extract_CharArray_ShouldMapFromCharArray(char[] value)
+        {
+            // Arrange
+            RfcErrorInfo errorInfo;
+
+            _interopMock
+                .Setup(x => x.GetChars(It.IsAny<IntPtr>(), It.IsAny<string>(), It.IsAny<char[]>(), It.IsAny<uint>(), out errorInfo))
+                .Callback(new GetCharsCallback((IntPtr dataHandle, string name, char[] buffer, uint bufferLength, out RfcErrorInfo ei) =>
+                {
+                    Array.Copy(value, buffer, value.Length);
+                    ei = default;
+                }));
+
+            // Act
+            CharsModel result = OutputMapper.Extract<CharsModel>(_interopMock.Object, DataHandle);
+
+            // Assert
+            _interopMock.Verify(
+                x => x.GetChars(DataHandle, "CHARSVALUE", It.IsAny<char[]>(), 3, out errorInfo),
+                Times.Once);
+            result.Should().NotBeNull();
+            result.CharsValue.Should().BeEquivalentTo(value);
+        }
+
+        [Fact]
+        public void Extract_EmptyCharArray_ShouldMapAsEmptyCharArray()
+        {
+            // Arrange
+            RfcErrorInfo errorInfo;
+            uint bufferLength = 0;
+            _interopMock.Setup(x => x.GetChars(It.IsAny<IntPtr>(), It.IsAny<string>(), It.IsAny<char[]>(), bufferLength, out errorInfo));
+
+            // Act
+            EmptyCharsModel result = OutputMapper.Extract<EmptyCharsModel>(_interopMock.Object, DataHandle);
+
+            // Assert
+            _interopMock.Verify(
+                x => x.GetChars(DataHandle, "CHARSVALUE", Array.Empty<char>(), 0, out errorInfo),
+                Times.Never);
+            result.Should().NotBeNull();
+            result.CharsValue.Should().BeEmpty();
+        }
+
+        private sealed class CharsModel
+        {
+            [SapBufferLength(3)]
+            public char[] CharsValue { get; set; }
+        }
+
+        private sealed class EmptyCharsModel
+        {
+            public char[] CharsValue { get; set; }
+        }
+
         private delegate void GetDateCallback(IntPtr dataHandle, string name, char[] buffer, out RfcErrorInfo errorInfo);
 
         [Fact]

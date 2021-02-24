@@ -1,0 +1,47 @@
+﻿<#@ template language="C#" #>
+<#@ import namespace="System.Collections.Generic" #>
+<#@ import namespace="System.Linq" #>
+<#@ import namespace="System.IO" #>
+<#@ import namespace="System.Text.RegularExpressions" #>
+<#@ include file="./../../../templates/EnumHelpers.tt" #>
+<#
+var enumValues = ExtractEnumValues("../Internal/Interop/RfcResultCode.cs").ToArray();
+#>
+using System.Diagnostics.CodeAnalysis;
+using SapNwRfc.Internal.Interop;
+
+namespace SapNwRfc.Exceptions
+{
+    public enum SapResultCode
+    {
+        UnknownValue = -1,
+<#
+foreach (var enumValue in enumValues)
+{
+#>
+        <#= SnakeToPascalCasing(enumValue).Substring(3) #>,
+<#
+}
+#>
+    }
+
+    [ExcludeFromCodeCoverage]
+    internal static class SapResultCodeMapper
+    {
+        public static SapResultCode Map(RfcResultCode resultCode)
+        {
+            switch (resultCode)
+            {
+<#
+foreach (var enumValue in enumValues)
+{
+#>
+            case RfcResultCode.<#= enumValue #>: return SapResultCode.<#= SnakeToPascalCasing(enumValue).Substring(3) #>;
+<#
+}
+#>
+            default: return SapResultCode.UnknownValue;
+            }
+        }
+    }
+}

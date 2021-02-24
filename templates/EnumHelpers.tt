@@ -1,0 +1,48 @@
+<#@ assembly name="System.Core" #>
+<#@ import namespace="System.Collections.Generic" #>
+<#@ import namespace="System.IO" #>
+<#@ import namespace="System.Text.RegularExpressions" #>
+<#@ include file="./Header.tt" #>
+<#+
+
+enum ExtractionState
+{
+    SearchDefinition,
+    SearchScopeStart,
+    GatherValues,
+}
+
+public static IEnumerable<string> ExtractEnumValues(string fileName)
+{
+    ExtractionState state = ExtractionState.SearchDefinition;
+    foreach (var line in File.ReadLines(fileName))
+    {
+        switch (state)
+        {
+            case ExtractionState.SearchDefinition:
+                if (Regex.IsMatch(line, @"^\s+(public|private|internal)\s+enum\s+\w+\s*$"))
+                    state = ExtractionState.SearchScopeStart;
+                break;
+            case ExtractionState.SearchScopeStart:
+                if (line.Contains("{"))
+                    state = ExtractionState.GatherValues;
+                break;
+            case ExtractionState.GatherValues:
+                if (line.Contains("}"))
+                    yield break;
+
+                yield return Regex.Match(line, @"^\s*(?<EnumValue>\w+)\s*(=\s*\d+)?,?$").Groups["EnumValue"].Value;
+                break;
+        }
+    }
+}
+
+public static string SnakeToPascalCasing(string value)
+    => value.Aggregate((Result: string.Empty, Uppercase: true), (accumulator, ch) =>
+    {
+        if (ch == '_') return (accumulator.Result, true);
+        ch = accumulator.Uppercase ? char.ToUpper(ch) : char.ToLower(ch);
+        return ($"{accumulator.Result}{ch}", false);
+    }).Result;
+
+#>
