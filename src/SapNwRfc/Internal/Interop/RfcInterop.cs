@@ -235,6 +235,12 @@ namespace SapNwRfc.Internal.Interop
             => RfcMoveToNextRow(tableHandle, out errorInfo);
 
         [DllImport(SapNwRfcDllName)]
+        private static extern RfcResultCode RfcMoveToFirstRow(IntPtr tableHandle, out RfcErrorInfo errorInfo);
+
+        public virtual RfcResultCode MoveToFirstRow(IntPtr tableHandle, out RfcErrorInfo errorInfo)
+            => RfcMoveToFirstRow(tableHandle, out errorInfo);
+
+        [DllImport(SapNwRfcDllName)]
         private static extern IntPtr RfcAppendNewRow(IntPtr tableHandle, out RfcErrorInfo errorInfo);
 
         public virtual IntPtr AppendNewRow(IntPtr tableHandle, out RfcErrorInfo errorInfo)

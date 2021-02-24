@@ -44,6 +44,12 @@ namespace SapNwRfc.Internal.Fields
 
             resultCode.ThrowOnError(errorInfo);
 
+            interop.MoveToFirstRow(
+                tableHandle: tableHandle,
+                out errorInfo);
+
+            resultCode.ThrowOnError(errorInfo);
+
             resultCode = interop.GetRowCount(
                 tableHandle: tableHandle,
                 out uint rowCount,
