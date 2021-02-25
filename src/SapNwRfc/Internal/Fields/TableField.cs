@@ -44,20 +44,20 @@ namespace SapNwRfc.Internal.Fields
 
             resultCode.ThrowOnError(errorInfo);
 
-            interop.MoveToFirstRow(
+            resultCode = interop.MoveToFirstRow(
                 tableHandle: tableHandle,
-                out errorInfo);
+                errorInfo: out errorInfo);
 
             resultCode.ThrowOnError(errorInfo);
 
             resultCode = interop.GetRowCount(
                 tableHandle: tableHandle,
-                out uint rowCount,
-                out errorInfo);
+                rowCount: out uint rowCount,
+                errorInfo: out errorInfo);
 
             resultCode.ThrowOnError(errorInfo);
 
-            var rows = rowCount == 0 ? Array.Empty<T>() : new T[rowCount];
+            T[] rows = rowCount == 0 ? Array.Empty<T>() : new T[rowCount];
 
             for (int i = 0; i < rowCount; i++)
             {
