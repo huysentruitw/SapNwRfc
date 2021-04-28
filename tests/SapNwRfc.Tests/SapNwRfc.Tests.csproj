@@ -4,16 +4,14 @@
     <TargetFrameworks>net472;netcoreapp3.1</TargetFrameworks>
     <IsPackable>false</IsPackable>
     <CodeAnalysisRuleSet>..\..\ca.ruleset</CodeAnalysisRuleSet>
+    <SignAssembly>true</SignAssembly>
+	<DelaySign>false</DelaySign>
+    <AssemblyOriginatorKeyFile>..\..\Signing.snk</AssemblyOriginatorKeyFile>
   </PropertyGroup>
 
   <PropertyGroup>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <WarningsAsErrors />
-  </PropertyGroup>
-
-  <PropertyGroup Condition="'$(Configuration)' == 'Release'">
-    <SignAssembly>true</SignAssembly>
-    <AssemblyOriginatorKeyFile>..\..\key.snk</AssemblyOriginatorKeyFile>
   </PropertyGroup>
 
   <ItemGroup>
@@ -36,6 +34,12 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\SapNwRfc\SapNwRfc.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="..\..\Signing.snk">
+      <Link>Signing.snk</Link>
+    </None>
   </ItemGroup>
 
 </Project>

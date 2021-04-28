@@ -15,16 +15,14 @@
     <CodeAnalysisRuleSet>..\..\ca.ruleset</CodeAnalysisRuleSet>
     <AssemblyName>SapNwRfcDotNet</AssemblyName>
     <PackageId>SapNwRfc</PackageId>
+    <SignAssembly>true</SignAssembly>
+	  <DelaySign>false</DelaySign>
+    <AssemblyOriginatorKeyFile>..\..\Signing.snk</AssemblyOriginatorKeyFile>
   </PropertyGroup>
 
   <PropertyGroup>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <WarningsAsErrors />
-  </PropertyGroup>
-
-  <PropertyGroup Condition="'$(Configuration)' == 'Release'">
-    <SignAssembly>true</SignAssembly>
-    <AssemblyOriginatorKeyFile>..\..\key.snk</AssemblyOriginatorKeyFile>
   </PropertyGroup>
 
   <ItemGroup>
@@ -42,6 +40,9 @@
     <None Update="Exceptions\SapResultCode.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>SapResultCode.cs</LastGenOutput>
+    </None>
+    <None Include="..\..\Signing.snk">
+      <Link>Signing.snk</Link>
     </None>
   </ItemGroup>
 
