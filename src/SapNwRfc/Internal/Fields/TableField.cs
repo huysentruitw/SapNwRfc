@@ -79,9 +79,7 @@ namespace SapNwRfc.Internal.Fields
 
                     if (resultCode == RfcResultCode.RFC_TABLE_MOVE_EOF)
                     {
-                        if (i + 1 < rowCount)
-                            Array.Resize(ref rows, i + 1);
-
+                        Array.Resize(ref rows, i + 1);
                         break;
                     }
 
