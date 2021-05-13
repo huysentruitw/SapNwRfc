@@ -44,12 +44,6 @@ namespace SapNwRfc.Internal.Fields
 
             resultCode.ThrowOnError(errorInfo);
 
-            resultCode = interop.MoveToFirstRow(
-                tableHandle: tableHandle,
-                errorInfo: out errorInfo);
-
-            resultCode.ThrowOnError(errorInfo);
-
             resultCode = interop.GetRowCount(
                 tableHandle: tableHandle,
                 rowCount: out uint rowCount,
@@ -57,26 +51,37 @@ namespace SapNwRfc.Internal.Fields
 
             resultCode.ThrowOnError(errorInfo);
 
-            T[] rows = rowCount == 0 ? Array.Empty<T>() : new T[rowCount];
+            T[] rows = Array.Empty<T>();
 
-            for (int i = 0; i < rowCount; i++)
+            if (rowCount > 0)
             {
-                IntPtr rowHandle = interop.GetCurrentRow(
+                rows = new T[rowCount];
+
+                resultCode = interop.MoveToFirstRow(
                     tableHandle: tableHandle,
                     errorInfo: out errorInfo);
-
-                errorInfo.ThrowOnError();
-
-                rows[i] = OutputMapper.Extract<T>(interop, rowHandle);
-
-                resultCode = interop.MoveToNextRow(
-                    tableHandle: tableHandle,
-                    errorInfo: out errorInfo);
-
-                if (resultCode == RfcResultCode.RFC_TABLE_MOVE_EOF)
-                    return new TableField<T>(name, rows.Take(i + 1).ToArray());
 
                 resultCode.ThrowOnError(errorInfo);
+
+                for (int i = 0; i < rowCount; i++)
+                {
+                    IntPtr rowHandle = interop.GetCurrentRow(
+                        tableHandle: tableHandle,
+                        errorInfo: out errorInfo);
+
+                    errorInfo.ThrowOnError();
+
+                    rows[i] = OutputMapper.Extract<T>(interop, rowHandle);
+
+                    resultCode = interop.MoveToNextRow(
+                        tableHandle: tableHandle,
+                        errorInfo: out errorInfo);
+
+                    if (resultCode == RfcResultCode.RFC_TABLE_MOVE_EOF)
+                        return new TableField<T>(name, rows.Take(i + 1).ToArray());
+
+                    resultCode.ThrowOnError(errorInfo);
+                }
             }
 
             return new TableField<T>(name, rows);

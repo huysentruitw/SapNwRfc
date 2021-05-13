@@ -528,6 +528,7 @@ namespace SapNwRfc.Tests.Internal
             RfcErrorInfo errorInfo;
             _interopMock.Setup(x => x.GetTable(It.IsAny<IntPtr>(), It.IsAny<string>(), out tableHandle, out errorInfo));
             _interopMock.Setup(x => x.GetRowCount(It.IsAny<IntPtr>(), out rowCount, out errorInfo));
+            _interopMock.Setup(x => x.MoveToFirstRow(It.IsAny<IntPtr>(), out errorInfo));
             _interopMock.Setup(x => x.GetCurrentRow(It.IsAny<IntPtr>(), out errorInfo)).Returns(rowHandle);
             _interopMock.Setup(x => x.GetInt(It.IsAny<IntPtr>(), It.IsAny<string>(), out intValue, out errorInfo));
 
@@ -540,6 +541,9 @@ namespace SapNwRfc.Tests.Internal
                 Times.Once);
             _interopMock.Verify(
                 x => x.GetRowCount(tableHandle, out rowCount, out errorInfo),
+                Times.Once);
+            _interopMock.Verify(
+                x => x.MoveToFirstRow(tableHandle, out errorInfo),
                 Times.Once);
             _interopMock.Verify(
                 x => x.GetCurrentRow(tableHandle, out errorInfo),
@@ -564,6 +568,7 @@ namespace SapNwRfc.Tests.Internal
             RfcErrorInfo errorInfo;
             _interopMock.Setup(x => x.GetTable(It.IsAny<IntPtr>(), It.IsAny<string>(), out tableHandle, out errorInfo));
             _interopMock.Setup(x => x.GetRowCount(It.IsAny<IntPtr>(), out rowCount, out errorInfo));
+            _interopMock.Setup(x => x.MoveToFirstRow(It.IsAny<IntPtr>(), out errorInfo));
             _interopMock.Setup(x => x.GetCurrentRow(It.IsAny<IntPtr>(), out errorInfo)).Returns(rowHandle);
             _interopMock.Setup(x => x.GetInt(It.IsAny<IntPtr>(), It.IsAny<string>(), out intValue, out errorInfo));
 
@@ -577,6 +582,44 @@ namespace SapNwRfc.Tests.Internal
             // Assert
             result.Should().NotBeNull();
             result.Elements.Should().HaveCount(1);
+        }
+
+        [Fact]
+        public void Extract_TableWithZeroRows_ShouldNotCallMoveToFirstRow()
+        {
+            // Arrange
+            var tableHandle = (IntPtr)3334;
+            var rowHandle = (IntPtr)4445;
+            uint rowCount = 0;
+            RfcErrorInfo errorInfo;
+            _interopMock.Setup(x => x.GetTable(It.IsAny<IntPtr>(), It.IsAny<string>(), out tableHandle, out errorInfo));
+            _interopMock.Setup(x => x.GetRowCount(It.IsAny<IntPtr>(), out rowCount, out errorInfo));
+            _interopMock.Setup(x => x.MoveToFirstRow(It.IsAny<IntPtr>(), out errorInfo));
+            _interopMock.Setup(x => x.GetCurrentRow(It.IsAny<IntPtr>(), out errorInfo)).Returns(rowHandle);
+
+            _interopMock
+                .Setup(x => x.MoveToNextRow(It.IsAny<IntPtr>(), out errorInfo))
+                .Returns(RfcResultCode.RFC_TABLE_MOVE_EOF);
+
+            // Act
+            ArrayModel result = OutputMapper.Extract<ArrayModel>(_interopMock.Object, DataHandle);
+
+            // Assert
+            _interopMock.Verify(
+                x => x.GetTable(DataHandle, "ELEMENTS", out tableHandle, out errorInfo),
+                Times.Once);
+            _interopMock.Verify(
+                x => x.GetRowCount(tableHandle, out rowCount, out errorInfo),
+                Times.Once);
+            _interopMock.Verify(
+                x => x.MoveToFirstRow(tableHandle, out errorInfo),
+                Times.Never);
+            _interopMock.Verify(
+                x => x.GetCurrentRow(tableHandle, out errorInfo),
+                Times.Never);
+            _interopMock.Verify(x => x.MoveToNextRow(tableHandle, out errorInfo), Times.Never);
+            result.Should().NotBeNull();
+            result.Elements.Should().HaveCount(0);
         }
 
         private sealed class ArrayModel
