@@ -1,6 +1,6 @@
-﻿using System;
+using System;
 using System.Diagnostics.CodeAnalysis;
-using System.Text.RegularExpressions;
+using System.Globalization;
 using SapNwRfc.Internal.Interop;
 
 namespace SapNwRfc.Internal.Fields
@@ -10,6 +10,7 @@ namespace SapNwRfc.Internal.Fields
     {
         private static readonly string ZeroRfcDateString = new string('0', 8);
         private static readonly string EmptyRfcDateString = new string(' ', 8);
+        private static readonly string RfcDateFormat = "yyyyMMdd";
 
         public DateField(string name, DateTime? value)
             : base(name, value)
@@ -18,10 +19,17 @@ namespace SapNwRfc.Internal.Fields
 
         public override void Apply(RfcInterop interop, IntPtr dataHandle)
         {
+#if NETSTANDARD2_0
+            char[] buffer = (Value?.ToString(RfcDateFormat, CultureInfo.InvariantCulture) ?? ZeroRfcDateString).ToCharArray();
+#else
+            char[] buffer = ZeroRfcDateString.ToCharArray();
+            Value?.TryFormat(buffer, out var _, RfcDateFormat, CultureInfo.InvariantCulture);
+#endif
+
             RfcResultCode resultCode = interop.SetDate(
                 dataHandle: dataHandle,
                 name: Name,
-                date: (Value?.ToString("yyyyMMdd") ?? ZeroRfcDateString).ToCharArray(),
+                date: buffer,
                 errorInfo: out RfcErrorInfo errorInfo);
 
             resultCode.ThrowOnError(errorInfo);
@@ -39,20 +47,22 @@ namespace SapNwRfc.Internal.Fields
 
             resultCode.ThrowOnError(errorInfo);
 
+#if NETSTANDARD2_0
             string dateString = new string(buffer);
 
             if (dateString == EmptyRfcDateString || dateString == ZeroRfcDateString)
                 return new DateField(name, null);
+#else
+            Span<char> dateString = buffer.AsSpan();
 
-            Match match = Regex.Match(dateString, "^(?<Year>[0-9]{4})(?<Month>[0-9]{2})(?<Day>[0-9]{2})$");
-            if (!match.Success)
+            if (dateString.SequenceEqual(EmptyRfcDateString) || dateString.SequenceEqual(ZeroRfcDateString))
+                return new DateField(name, null);
+#endif
+
+            if (!DateTime.TryParseExact(dateString, RfcDateFormat, CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime date))
                 return new DateField(name, null);
 
-            int year = int.Parse(match.Groups["Year"].Value);
-            int month = int.Parse(match.Groups["Month"].Value);
-            int day = int.Parse(match.Groups["Day"].Value);
-
-            return new DateField(name, new DateTime(year, month, day));
+            return new DateField(name, date);
         }
 
         [ExcludeFromCodeCoverage]

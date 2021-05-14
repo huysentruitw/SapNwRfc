@@ -1,6 +1,6 @@
-﻿using System;
+using System;
 using System.Diagnostics.CodeAnalysis;
-using System.Text.RegularExpressions;
+using System.Globalization;
 using SapNwRfc.Internal.Interop;
 
 namespace SapNwRfc.Internal.Fields
@@ -10,6 +10,7 @@ namespace SapNwRfc.Internal.Fields
     {
         private static readonly string ZeroRfcTimeString = new string('0', 6);
         private static readonly string EmptyRfcTimeString = new string(' ', 6);
+        private static readonly string RfcTimeFormat = "hhmmss";
 
         public TimeField(string name, TimeSpan? value)
             : base(name, value)
@@ -18,12 +19,17 @@ namespace SapNwRfc.Internal.Fields
 
         public override void Apply(RfcInterop interop, IntPtr dataHandle)
         {
-            string stringValue = Value?.ToString("hhmmss") ?? ZeroRfcTimeString;
+#if NETSTANDARD2_0
+            char[] buffer = (Value?.ToString(RfcTimeFormat, CultureInfo.InvariantCulture) ?? ZeroRfcTimeString).ToCharArray();
+#else
+            char[] buffer = ZeroRfcTimeString.ToCharArray();
+            Value?.TryFormat(buffer, out var _, RfcTimeFormat, CultureInfo.InvariantCulture);
+#endif
 
             RfcResultCode resultCode = interop.SetTime(
                 dataHandle: dataHandle,
                 name: Name,
-                time: stringValue.ToCharArray(),
+                time: buffer,
                 out RfcErrorInfo errorInfo);
 
             resultCode.ThrowOnError(errorInfo);
@@ -41,20 +47,22 @@ namespace SapNwRfc.Internal.Fields
 
             resultCode.ThrowOnError(errorInfo);
 
-            var timeString = new string(buffer);
+#if NETSTANDARD2_0
+            string timeString = new string(buffer);
 
             if (timeString == EmptyRfcTimeString || timeString == ZeroRfcTimeString)
                 return new TimeField(name, null);
+#else
+            Span<char> timeString = buffer.AsSpan();
 
-            Match match = Regex.Match(timeString, "^(?<Hours>[0-9]{2})(?<Minutes>[0-9]{2})(?<Seconds>[0-9]{2})$");
-            if (!match.Success)
+            if (timeString.SequenceEqual(EmptyRfcTimeString) || timeString.SequenceEqual(ZeroRfcTimeString))
+                return new TimeField(name, null);
+#endif
+
+            if (!TimeSpan.TryParseExact(timeString, RfcTimeFormat, CultureInfo.InvariantCulture, out TimeSpan time))
                 return new TimeField(name, null);
 
-            int hours = int.Parse(match.Groups["Hours"].Value);
-            int minutes = int.Parse(match.Groups["Minutes"].Value);
-            int seconds = int.Parse(match.Groups["Seconds"].Value);
-
-            return new TimeField(name, new TimeSpan(hours, minutes, seconds));
+            return new TimeField(name, time);
         }
 
         [ExcludeFromCodeCoverage]
