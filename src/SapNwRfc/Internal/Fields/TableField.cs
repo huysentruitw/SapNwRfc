@@ -78,7 +78,10 @@ namespace SapNwRfc.Internal.Fields
                         errorInfo: out errorInfo);
 
                     if (resultCode == RfcResultCode.RFC_TABLE_MOVE_EOF)
-                        return new TableField<T>(name, rows.Take(i + 1).ToArray());
+                    {
+                        Array.Resize(ref rows, i + 1);
+                        break;
+                    }
 
                     resultCode.ThrowOnError(errorInfo);
                 }
