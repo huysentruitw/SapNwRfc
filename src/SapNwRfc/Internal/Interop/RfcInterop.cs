@@ -74,7 +74,7 @@ namespace SapNwRfc.Internal.Interop
 
         public virtual RfcResultCode GetFunctionName(IntPtr rfcHandle, out string funcName, out RfcErrorInfo errorInfo)
         {
-            var buffer = new StringBuilder(30); // 30 + 1?
+            var buffer = new StringBuilder(31);
             RfcResultCode resultCode = RfcGetFunctionName(rfcHandle, buffer, out errorInfo);
             funcName = buffer.ToString();
             return resultCode;
