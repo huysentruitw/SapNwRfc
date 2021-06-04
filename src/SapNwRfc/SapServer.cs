@@ -10,13 +10,13 @@ namespace SapNwRfc
     {
         private readonly RfcInterop _interop;
         private readonly IntPtr _rfcServerHandle;
-        private readonly SapConnectionParameters _parametes;
+        private readonly SapConnectionParameters _parameters;
 
         private SapServer(RfcInterop interop, IntPtr rfcServerHandle, SapConnectionParameters parameters)
         {
             _interop = interop;
             _rfcServerHandle = rfcServerHandle;
-            _parametes = parameters;
+            _parameters = parameters;
         }
 
         /// <summary>
@@ -39,7 +39,7 @@ namespace SapNwRfc
             return Create(new RfcInterop(), parameters);
         }
 
-        internal static ISapServer Create(RfcInterop rfcInterop, SapConnectionParameters parameters)
+        private static ISapServer Create(RfcInterop rfcInterop, SapConnectionParameters parameters)
         {
             RfcConnectionParameter[] interopParameters = parameters.ToInterop();
 
@@ -79,11 +79,9 @@ namespace SapNwRfc
         /// </summary>
         public void Dispose()
         {
-            RfcResultCode resultCode = _interop.DestroyServer(
+            _interop.DestroyServer(
                 rfcHandle: _rfcServerHandle,
-                errorInfo: out RfcErrorInfo errorInfo);
-
-            // resultCode.ThrowOnError(errorInfo);
+                errorInfo: out RfcErrorInfo _);
         }
 
         /// <summary>
@@ -106,13 +104,13 @@ namespace SapNwRfc
             InstallGenericServerFunctionHandler(new RfcInterop(), parameters, action);
         }
 
-        internal static void InstallGenericServerFunctionHandler(RfcInterop interop, SapConnectionParameters parameters, Action<ISapServerConnection, ISapServerFunction> action)
+        private static void InstallGenericServerFunctionHandler(RfcInterop interop, SapConnectionParameters parameters, Action<ISapServerConnection, ISapServerFunction> action)
         {
             RfcResultCode resultCode = interop.InstallGenericServerFunction(
                 serverFunction: (IntPtr connectionHandle, IntPtr functionHandle, out RfcErrorInfo errorInfo)
                                     => HandleGenericFunction(interop, action, connectionHandle, functionHandle, out errorInfo),
                 funcDescPointer: (string functionName, ref RfcAttributes attributes, out IntPtr funcDescHandle)
-                                    => HandleGenericMetadata(interop, parameters, functionName, attributes, out funcDescHandle),
+                                    => HandleGenericMetadata(interop, parameters, functionName, out funcDescHandle),
                 out RfcErrorInfo installFunctionErrorInfo);
 
             resultCode.ThrowOnError(installFunctionErrorInfo);
@@ -151,7 +149,7 @@ namespace SapNwRfc
             }
         }
 
-        private static RfcResultCode HandleGenericMetadata(RfcInterop interop, SapConnectionParameters parameters, string functionName, RfcAttributes attributes, out IntPtr funcDescHandle)
+        private static RfcResultCode HandleGenericMetadata(RfcInterop interop, SapConnectionParameters parameters, string functionName, out IntPtr funcDescHandle)
         {
             RfcConnectionParameter[] interopParameters = parameters.ToInterop();
 
@@ -171,9 +169,9 @@ namespace SapNwRfc
                 funcName: functionName,
                 errorInfo: out RfcErrorInfo errorInfo);
 
-            RfcResultCode resultCode = interop.CloseConnection(
+            interop.CloseConnection(
                 rfcHandle: connection,
-                errorInfo: out RfcErrorInfo closeErrorInfo);
+                errorInfo: out RfcErrorInfo _);
 
             return errorInfo.Code;
         }

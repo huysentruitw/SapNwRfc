@@ -42,8 +42,8 @@ namespace SapNwRfc
             RfcResultCode resultCode = _interop.GetParameterDescByName(
                 funcDescHandle: _functionDescriptionHandle,
                 parameterName: parameterName,
-                parameterDescHandle: out IntPtr parameterDescHandle,
-                errorInfo: out RfcErrorInfo errorInfo);
+                parameterDescHandle: out IntPtr _,
+                errorInfo: out RfcErrorInfo _);
 
             return resultCode == RfcResultCode.RFC_OK;
         }
