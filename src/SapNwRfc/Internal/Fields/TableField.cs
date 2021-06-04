@@ -51,40 +51,38 @@ namespace SapNwRfc.Internal.Fields
 
             resultCode.ThrowOnError(errorInfo);
 
-            T[] rows = Array.Empty<T>();
+            if (rowCount == 0)
+                return new TableField<T>(name, Array.Empty<T>());
 
-            if (rowCount > 0)
+            var rows = new T[rowCount];
+
+            resultCode = interop.MoveToFirstRow(
+                tableHandle: tableHandle,
+                errorInfo: out errorInfo);
+
+            resultCode.ThrowOnError(errorInfo);
+
+            for (int i = 0; i < rowCount; i++)
             {
-                rows = new T[rowCount];
-
-                resultCode = interop.MoveToFirstRow(
+                IntPtr rowHandle = interop.GetCurrentRow(
                     tableHandle: tableHandle,
                     errorInfo: out errorInfo);
 
-                resultCode.ThrowOnError(errorInfo);
+                errorInfo.ThrowOnError();
 
-                for (int i = 0; i < rowCount; i++)
+                rows[i] = OutputMapper.Extract<T>(interop, rowHandle);
+
+                resultCode = interop.MoveToNextRow(
+                    tableHandle: tableHandle,
+                    errorInfo: out errorInfo);
+
+                if (resultCode == RfcResultCode.RFC_TABLE_MOVE_EOF)
                 {
-                    IntPtr rowHandle = interop.GetCurrentRow(
-                        tableHandle: tableHandle,
-                        errorInfo: out errorInfo);
-
-                    errorInfo.ThrowOnError();
-
-                    rows[i] = OutputMapper.Extract<T>(interop, rowHandle);
-
-                    resultCode = interop.MoveToNextRow(
-                        tableHandle: tableHandle,
-                        errorInfo: out errorInfo);
-
-                    if (resultCode == RfcResultCode.RFC_TABLE_MOVE_EOF)
-                    {
-                        Array.Resize(ref rows, i + 1);
-                        break;
-                    }
-
-                    resultCode.ThrowOnError(errorInfo);
+                    Array.Resize(ref rows, i + 1);
+                    break;
                 }
+
+                resultCode.ThrowOnError(errorInfo);
             }
 
             return new TableField<T>(name, rows);
