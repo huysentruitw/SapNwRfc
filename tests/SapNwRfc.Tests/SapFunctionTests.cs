@@ -43,6 +43,42 @@ namespace SapNwRfc.Tests
         }
 
         [Fact]
+        public void HasParameter_ParameterExists_ShouldReturnTrue()
+        {
+            // Arrange
+            IntPtr parameterDescHandle;
+            RfcErrorInfo errorInfo;
+            _interopMock
+                .Setup(x => x.GetParameterDescByName(It.IsAny<IntPtr>(), "PAR123", out parameterDescHandle, out errorInfo))
+                .Returns(RfcResultCode.RFC_OK);
+            ISapFunction function = SapFunction.CreateFromDescriptionHandle(_interopMock.Object, RfcConnectionHandle, FunctionDescriptionHandle);
+
+            // Act
+            var result = function.HasParameter("PAR123");
+
+            // Assert
+            result.Should().BeTrue();
+        }
+
+        [Fact]
+        public void HasParameter_ParameterDoesNotExist_ShouldReturnFalse()
+        {
+            // Arrange
+            IntPtr parameterDescHandle;
+            RfcErrorInfo errorInfo;
+            _interopMock
+                .Setup(x => x.GetParameterDescByName(It.IsAny<IntPtr>(), "PAR123", out parameterDescHandle, out errorInfo))
+                .Returns(RfcResultCode.RFC_NOT_FOUND);
+            ISapFunction function = SapFunction.CreateFromDescriptionHandle(_interopMock.Object, RfcConnectionHandle, FunctionDescriptionHandle);
+
+            // Act
+            var result = function.HasParameter("PAR123");
+
+            // Assert
+            result.Should().BeFalse();
+        }
+
+        [Fact]
         public void Invoke_NoInput_NoOutput_ShouldInvokeFunction()
         {
             // Arrange

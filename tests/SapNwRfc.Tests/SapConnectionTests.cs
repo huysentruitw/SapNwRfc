@@ -1,4 +1,5 @@
 using System;
+using AutoFixture;
 using FluentAssertions;
 using Moq;
 using SapNwRfc.Exceptions;
@@ -9,9 +10,15 @@ namespace SapNwRfc.Tests
 {
     public sealed class SapConnectionTests
     {
+        private static readonly Fixture Fixture = new Fixture();
         private static readonly IntPtr SapConnectionHandle = (IntPtr)12;
         private static readonly IntPtr FunctionDescriptionHandle = (IntPtr)34;
         private readonly Mock<RfcInterop> _interopMock = new Mock<RfcInterop>();
+
+        public SapConnectionTests()
+        {
+            new SupportMutableValueTypesCustomization().Customize(Fixture);
+        }
 
         [Fact]
         public void Connect_ConnectionSucceeds_ShouldOpenConnection()
@@ -359,6 +366,48 @@ namespace SapNwRfc.Tests
 
             // Assert
             pingResult.Should().BeFalse();
+        }
+
+        [Fact]
+        public void GetAttributes_GettingConnectionAttributesSucceeds_ShouldReturnConnectionAttributes()
+        {
+            // Arrange
+            RfcAttributes rfcAttributes = Fixture.Create<RfcAttributes>();
+            rfcAttributes.Reserved = null;
+            RfcErrorInfo errorInfo;
+            _interopMock
+                .Setup(x => x.GetConnectionAttributes(It.IsAny<IntPtr>(), out rfcAttributes, out errorInfo))
+                .Returns(RfcResultCode.RFC_OK);
+            var connection = new SapConnection(_interopMock.Object, new SapConnectionParameters());
+
+            // Act
+            SapConnectionAttributes connectionAttributes = connection.GetAttributes();
+
+            // Assert
+            connectionAttributes.Should().NotBeNull();
+            connectionAttributes.Should().BeEquivalentTo(rfcAttributes, config => config
+                .ComparingByMembers<RfcAttributes>()
+                .ComparingByMembers<SapConnectionAttributes>()
+                .ExcludingMissingMembers());
+        }
+
+        [Fact]
+        public void GetAttributes_GettingTheAttributesFails_ShouldThrowException()
+        {
+            // Arrange
+            RfcAttributes rfcAttributes = Fixture.Create<RfcAttributes>();
+            RfcErrorInfo errorInfo;
+            _interopMock
+                .Setup(x => x.GetConnectionAttributes(It.IsAny<IntPtr>(), out rfcAttributes, out errorInfo))
+                .Returns(RfcResultCode.RFC_CLOSED);
+            var connection = new SapConnection(_interopMock.Object, new SapConnectionParameters());
+
+            // Act
+            Action action = () => connection.GetAttributes();
+
+            // Assert
+            action.Should().Throw<SapException>()
+                .WithMessage("SAP RFC Error: RFC_CLOSED");
         }
     }
 }
