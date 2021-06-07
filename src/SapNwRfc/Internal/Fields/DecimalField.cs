@@ -54,7 +54,11 @@ namespace SapNwRfc.Internal.Fields
 
             resultCode.ThrowOnError(errorInfo);
 
+#if NETSTANDARD2_0
             var decimalValue = decimal.Parse(new string(buffer, 0, (int)stringLength), CultureInfo.InvariantCulture);
+#else
+            var decimalValue = decimal.Parse(buffer.AsSpan(), provider: CultureInfo.InvariantCulture);
+#endif
 
             return new DecimalField(name, decimalValue);
         }
