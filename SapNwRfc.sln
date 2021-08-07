@@ -13,6 +13,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		ca.ruleset = ca.ruleset
 		LICENSE = LICENSE
 		README.md = README.md
+		.github\workflows\build-test-publish.yml = .github\workflows\build-test-publish.yml
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "templates", "templates", "{6848DB0B-E372-49F0-A99E-37B5E67353E8}"
