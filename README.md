@@ -1,7 +1,6 @@
 # SAP NetWeaver RFC library
 
-[![Build status](https://ci.appveyor.com/api/projects/status/6yd37vurchtbeb6c/branch/master?svg=true)](https://ci.appveyor.com/project/huysentruitw/sapnwrfc/branch/master)
-[![codecov](https://codecov.io/gh/huysentruitw/SapNwRfc/branch/master/graph/badge.svg)](https://codecov.io/gh/huysentruitw/SapNwRfc)
+[![Build status](https://github.com/huysentruitw/SapNwRfc/actions/workflows/build-test-publish.yml/badge.svg?branch=master)](https://github.com/huysentruitw/SapNwRfc/actions/workflows/build-test-publish.yml?query=branch%3Amaster)
 
 This cross-platform library allows you to call SAP NetWeaver RFC functions from .NET 5, .NET Core and the .NET Framework.
 
