@@ -176,7 +176,7 @@ namespace SapNwRfc.Tests.Pooling
             sw.Stop();
 
             // Assert
-            sw.ElapsedMilliseconds.Should().BeGreaterThan(100).And.BeLessThan(250);
+            sw.ElapsedMilliseconds.Should().BeGreaterThan(100).And.BeLessThan(275);
             connection3.Should().NotBeNull();
             connection3.Should().Be(connection1);
 
