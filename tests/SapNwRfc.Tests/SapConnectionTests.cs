@@ -11,7 +11,7 @@ namespace SapNwRfc.Tests
     public sealed class SapConnectionTests
     {
         private static readonly Fixture Fixture = new Fixture();
-        private static readonly IntPtr SapConnectionHandle = (IntPtr)12;
+        private static readonly IntPtr RfcConnectionHandle = (IntPtr)12;
         private static readonly IntPtr FunctionDescriptionHandle = (IntPtr)34;
         private readonly Mock<RfcInterop> _interopMock = new Mock<RfcInterop>();
 
@@ -76,7 +76,7 @@ namespace SapNwRfc.Tests
             RfcErrorInfo errorInfo;
             _interopMock
                 .Setup(x => x.OpenConnection(It.IsAny<RfcConnectionParameter[]>(), It.IsAny<uint>(), out errorInfo))
-                .Returns(SapConnectionHandle);
+                .Returns(RfcConnectionHandle);
 
             connection.Connect();
 
@@ -84,7 +84,7 @@ namespace SapNwRfc.Tests
             connection.Disconnect();
 
             // Assert
-            _interopMock.Verify(x => x.CloseConnection(SapConnectionHandle, out errorInfo), Times.Once);
+            _interopMock.Verify(x => x.CloseConnection(RfcConnectionHandle, out errorInfo), Times.Once);
         }
 
         [Fact]
@@ -95,7 +95,7 @@ namespace SapNwRfc.Tests
             RfcErrorInfo errorInfo;
             _interopMock
                 .Setup(x => x.OpenConnection(It.IsAny<RfcConnectionParameter[]>(), It.IsAny<uint>(), out errorInfo))
-                .Returns(SapConnectionHandle);
+                .Returns(RfcConnectionHandle);
             _interopMock
                 .Setup(x => x.CloseConnection(It.IsAny<IntPtr>(), out errorInfo))
                 .Returns(RfcResultCode.RFC_CANCELED);
@@ -118,7 +118,7 @@ namespace SapNwRfc.Tests
             RfcErrorInfo errorInfo;
             _interopMock
                 .Setup(x => x.OpenConnection(It.IsAny<RfcConnectionParameter[]>(), It.IsAny<uint>(), out errorInfo))
-                .Returns(SapConnectionHandle);
+                .Returns(RfcConnectionHandle);
 
             connection.Connect();
 
@@ -126,7 +126,7 @@ namespace SapNwRfc.Tests
             connection.Dispose();
 
             // Assert
-            _interopMock.Verify(x => x.CloseConnection(SapConnectionHandle, out errorInfo), Times.Once);
+            _interopMock.Verify(x => x.CloseConnection(RfcConnectionHandle, out errorInfo), Times.Once);
         }
 
         [Fact]
@@ -137,7 +137,7 @@ namespace SapNwRfc.Tests
             RfcErrorInfo errorInfo;
             _interopMock
                 .Setup(x => x.OpenConnection(It.IsAny<RfcConnectionParameter[]>(), It.IsAny<uint>(), out errorInfo))
-                .Returns(SapConnectionHandle);
+                .Returns(RfcConnectionHandle);
             _interopMock
                 .Setup(x => x.CloseConnection(It.IsAny<IntPtr>(), out errorInfo))
                 .Returns(RfcResultCode.RFC_CANCELED);
@@ -159,10 +159,10 @@ namespace SapNwRfc.Tests
             RfcErrorInfo errorInfo;
             _interopMock
                 .Setup(x => x.OpenConnection(It.IsAny<RfcConnectionParameter[]>(), It.IsAny<uint>(), out errorInfo))
-                .Returns(SapConnectionHandle);
+                .Returns(RfcConnectionHandle);
             int isValid = 1;
             _interopMock
-                .Setup(x => x.IsConnectionHandleValid(SapConnectionHandle, out isValid, out errorInfo))
+                .Setup(x => x.IsConnectionHandleValid(RfcConnectionHandle, out isValid, out errorInfo))
                 .Returns(RfcResultCode.RFC_OK);
 
             connection.Connect();
@@ -182,10 +182,10 @@ namespace SapNwRfc.Tests
             RfcErrorInfo errorInfo;
             _interopMock
                 .Setup(x => x.OpenConnection(It.IsAny<RfcConnectionParameter[]>(), It.IsAny<uint>(), out errorInfo))
-                .Returns(SapConnectionHandle);
+                .Returns(RfcConnectionHandle);
             int isValid = 1;
             _interopMock
-                .Setup(x => x.IsConnectionHandleValid(SapConnectionHandle, out isValid, out errorInfo))
+                .Setup(x => x.IsConnectionHandleValid(RfcConnectionHandle, out isValid, out errorInfo))
                 .Returns(RfcResultCode.RFC_OK);
 
             connection.Connect();
@@ -206,10 +206,10 @@ namespace SapNwRfc.Tests
             RfcErrorInfo errorInfo;
             _interopMock
                 .Setup(x => x.OpenConnection(It.IsAny<RfcConnectionParameter[]>(), It.IsAny<uint>(), out errorInfo))
-                .Returns(SapConnectionHandle);
+                .Returns(RfcConnectionHandle);
             int isValid = 1;
             _interopMock
-                .Setup(x => x.IsConnectionHandleValid(SapConnectionHandle, out isValid, out errorInfo))
+                .Setup(x => x.IsConnectionHandleValid(RfcConnectionHandle, out isValid, out errorInfo))
                 .Returns(RfcResultCode.RFC_CLOSED);
 
             connection.Connect();
@@ -229,10 +229,10 @@ namespace SapNwRfc.Tests
             RfcErrorInfo errorInfo;
             _interopMock
                 .Setup(x => x.OpenConnection(It.IsAny<RfcConnectionParameter[]>(), It.IsAny<uint>(), out errorInfo))
-                .Returns(SapConnectionHandle);
+                .Returns(RfcConnectionHandle);
             int isValid = 0;
             _interopMock
-                .Setup(x => x.IsConnectionHandleValid(SapConnectionHandle, out isValid, out errorInfo))
+                .Setup(x => x.IsConnectionHandleValid(RfcConnectionHandle, out isValid, out errorInfo))
                 .Returns(RfcResultCode.RFC_OK);
 
             connection.Connect();
@@ -252,9 +252,9 @@ namespace SapNwRfc.Tests
             RfcErrorInfo errorInfo;
             _interopMock
                 .Setup(x => x.OpenConnection(It.IsAny<RfcConnectionParameter[]>(), It.IsAny<uint>(), out errorInfo))
-                .Returns(SapConnectionHandle);
+                .Returns(RfcConnectionHandle);
             _interopMock
-                .Setup(x => x.GetFunctionDesc(SapConnectionHandle, "FunctionA", out errorInfo))
+                .Setup(x => x.GetFunctionDesc(RfcConnectionHandle, "FunctionA", out errorInfo))
                 .Returns(FunctionDescriptionHandle);
 
             connection.Connect();
@@ -276,9 +276,9 @@ namespace SapNwRfc.Tests
             RfcErrorInfo errorInfo;
             _interopMock
                 .Setup(x => x.OpenConnection(It.IsAny<RfcConnectionParameter[]>(), It.IsAny<uint>(), out errorInfo))
-                .Returns(SapConnectionHandle);
+                .Returns(RfcConnectionHandle);
             _interopMock
-                .Setup(x => x.IsConnectionHandleValid(SapConnectionHandle, out isValidValue, out errorInfo))
+                .Setup(x => x.IsConnectionHandleValid(RfcConnectionHandle, out isValidValue, out errorInfo))
                 .Returns(RfcResultCode.RFC_OK);
 
             connection.Connect();
@@ -299,9 +299,9 @@ namespace SapNwRfc.Tests
             RfcErrorInfo errorInfo;
             _interopMock
                 .Setup(x => x.OpenConnection(It.IsAny<RfcConnectionParameter[]>(), It.IsAny<uint>(), out errorInfo))
-                .Returns(SapConnectionHandle);
+                .Returns(RfcConnectionHandle);
             _interopMock
-                .Setup(x => x.IsConnectionHandleValid(SapConnectionHandle, out isValidValue, out errorInfo))
+                .Setup(x => x.IsConnectionHandleValid(RfcConnectionHandle, out isValidValue, out errorInfo))
                 .Returns(RfcResultCode.RFC_OK);
 
             connection.Connect();
@@ -333,9 +333,9 @@ namespace SapNwRfc.Tests
             RfcErrorInfo errorInfo;
             _interopMock
                 .Setup(x => x.OpenConnection(It.IsAny<RfcConnectionParameter[]>(), It.IsAny<uint>(), out errorInfo))
-                .Returns(SapConnectionHandle);
+                .Returns(RfcConnectionHandle);
             _interopMock
-                .Setup(x => x.Ping(SapConnectionHandle, out errorInfo))
+                .Setup(x => x.Ping(RfcConnectionHandle, out errorInfo))
                 .Returns(RfcResultCode.RFC_OK);
             var connection = new SapConnection(_interopMock.Object, new SapConnectionParameters());
             connection.Connect();
@@ -354,9 +354,9 @@ namespace SapNwRfc.Tests
             RfcErrorInfo errorInfo;
             _interopMock
                 .Setup(x => x.OpenConnection(It.IsAny<RfcConnectionParameter[]>(), It.IsAny<uint>(), out errorInfo))
-                .Returns(SapConnectionHandle);
+                .Returns(RfcConnectionHandle);
             _interopMock
-                .Setup(x => x.Ping(SapConnectionHandle, out errorInfo))
+                .Setup(x => x.Ping(RfcConnectionHandle, out errorInfo))
                 .Returns(RfcResultCode.RFC_TIMEOUT);
             var connection = new SapConnection(_interopMock.Object, new SapConnectionParameters());
             connection.Connect();
@@ -381,13 +381,13 @@ namespace SapNwRfc.Tests
             var connection = new SapConnection(_interopMock.Object, new SapConnectionParameters());
 
             // Act
-            SapConnectionAttributes connectionAttributes = connection.GetAttributes();
+            SapAttributes attributes = connection.GetAttributes();
 
             // Assert
-            connectionAttributes.Should().NotBeNull();
-            connectionAttributes.Should().BeEquivalentTo(rfcAttributes, config => config
+            attributes.Should().NotBeNull();
+            attributes.Should().BeEquivalentTo(rfcAttributes, config => config
                 .ComparingByMembers<RfcAttributes>()
-                .ComparingByMembers<SapConnectionAttributes>()
+                .ComparingByMembers<SapAttributes>()
                 .ExcludingMissingMembers());
         }
 
