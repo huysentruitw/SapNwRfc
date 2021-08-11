@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+
 namespace SapNwRfc
 {
     /// <summary>
@@ -12,17 +14,9 @@ namespace SapNwRfc
         string GetTypeName();
 
         /// <summary>
-        /// Gets the field count.
+        /// Gets the fields.
         /// </summary>
-        /// <returns>The field count.</returns>
-        uint GetFieldCount();
-
-        /// <summary>
-        /// Gets field metadata by index.
-        /// </summary>
-        /// <param name="index">The index of the field.</param>
-        /// <returns>The field metadata.</returns>
-        ISapFieldMetadata GetFieldByIndex(uint index);
+        IReadOnlyList<ISapFieldMetadata> Fields { get; }
 
         /// <summary>
         /// Gets field metadata by name.

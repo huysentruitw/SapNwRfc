@@ -39,7 +39,7 @@ namespace SapNwRfc
         public string DefaultValue => _parameterDescription.DefaultValue;
 
         /// <inheritdoc cref="ISapParameterMetadata"/>
-        public bool Optional => _parameterDescription.Optional == 1;
+        public bool IsOptional => _parameterDescription.Optional == 1;
 
         /// <inheritdoc cref="ISapParameterMetadata"/>
         public string Description => _parameterDescription.ParameterText;

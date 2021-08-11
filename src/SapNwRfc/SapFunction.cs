@@ -13,6 +13,7 @@ namespace SapNwRfc
         private readonly IntPtr _rfcConnectionHandle;
         private readonly IntPtr _functionDescriptionHandle;
         private readonly IntPtr _functionHandle;
+        private SapFunctionMetadata _functionMetadata;
 
         private SapFunction(
             RfcInterop interop,
@@ -69,10 +70,7 @@ namespace SapNwRfc
         }
 
         /// <inheritdoc cref="ISapFunction"/>
-        public ISapFunctionMetadata GetMetadata()
-        {
-            return new SapFunctionMetadata(_interop, _functionDescriptionHandle);
-        }
+        public ISapFunctionMetadata Metadata => _functionMetadata ?? (_functionMetadata = new SapFunctionMetadata(_interop, _functionDescriptionHandle));
 
         /// <inheritdoc cref="ISapFunction"/>
         public void Invoke()

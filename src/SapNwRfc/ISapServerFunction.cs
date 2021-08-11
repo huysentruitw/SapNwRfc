@@ -21,8 +21,7 @@ namespace SapNwRfc
         /// <summary>
         /// Gets the metadata for this function.
         /// </summary>
-        /// <returns>The metadata for this function.</returns>
-        ISapFunctionMetadata GetMetadata();
+        ISapFunctionMetadata Metadata { get; }
 
         /// <summary>
         /// Gets the parameters of the function.

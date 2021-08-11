@@ -17,8 +17,7 @@ namespace SapNwRfc
         /// <summary>
         /// Gets the metadata for this function.
         /// </summary>
-        /// <returns>The matadata for this function.</returns>
-        ISapFunctionMetadata GetMetadata();
+        ISapFunctionMetadata Metadata { get; }
 
         /// <summary>
         /// Invokes the remote function.

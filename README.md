@@ -204,28 +204,26 @@ server.Launch();
 ### Type Metadata
 
 ```csharp
-var typeMeta = connection.GetTypeMetadata("MY_STRUCTURE");
-var typeName = typeMeta.GetTypeName();
-var fieldCount = typeMeta.GetFieldCount();
-for (uint i = 0; i < fieldCount; i++)
+var typeMetadata = connection.GetTypeMetadata("MY_STRUCTURE");
+var typeName = typeMetadata.GetTypeName();
+var fieldCount = typeMetadata.Fields.Count;
+foreach (var fieldMetadata in typeMetadata.Fields)
 {
-    var fieldMeta = typeMeta.GetFieldByIndex(i);
-    var fieldName = fieldMeta.Name;
-    var fieldType = fieldMeta.Type;
+    var fieldName = fieldMetadata.Name;
+    var fieldType = fieldMetadata.Type;
 }
 ```
 
 ### Function Metadata
 
 ```csharp
-var funcMeta = connection.GetFunctionMetadata("BAPI_SOME_FUNCTION_NAME");
-var funcName = funcMeta.GetName();
-var parameterCount = funcMeta.GetParameterCount();
-for (uint i = 0; i < parameterCount; i++)
+var functionMetadata = connection.GetFunctionMetadata("BAPI_SOME_FUNCTION_NAME");
+var functionName = functionMetadata.GetName();
+var parameterCount = functionMetadata.Parameters.Count;
+foreach (var parameterMetadata in functionMetadata.Parameters)
 {
-    var parameterMeta = funcMeta.GetParameterByIndex(i);
-    var parameterName = parameterMeta.Name;
-    var parameterType = parameterMeta.Type;
+    var parameterName = parameterMetadata.Name;
+    var parameterType = parameterMetadata.Type;
 }
 ```
 

@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+
 namespace SapNwRfc
 {
     /// <summary>
@@ -12,17 +14,9 @@ namespace SapNwRfc
         string GetName();
 
         /// <summary>
-        /// Gets the parameter count.
+        /// Gets the parameters.
         /// </summary>
-        /// <returns>The parameter count.</returns>
-        uint GetParameterCount();
-
-        /// <summary>
-        /// Gets parameter metadata by index.
-        /// </summary>
-        /// <param name="index">The index of the parameter.</param>
-        /// <returns>The parameter metadata.</returns>
-        ISapParameterMetadata GetParameterByIndex(uint index);
+        IReadOnlyList<ISapParameterMetadata> Parameters { get; }
 
         /// <summary>
         /// Gets parameter metadata by name.
@@ -32,17 +26,9 @@ namespace SapNwRfc
         ISapParameterMetadata GetParameterByName(string name);
 
         /// <summary>
-        /// Gets the exception count.
+        /// Gets the exceptions.
         /// </summary>
-        /// <returns>The exception count.</returns>
-        uint GetExceptionCount();
-
-        /// <summary>
-        /// Gets exception metadata by index.
-        /// </summary>
-        /// <param name="index">The index of the exception.</param>
-        /// <returns>The exception metadata.</returns>
-        ISapExceptionMetadata GetExceptionByIndex(uint index);
+        IReadOnlyList<ISapExceptionMetadata> Exceptions { get; }
 
         /// <summary>
         /// Gets exception metadata by name.

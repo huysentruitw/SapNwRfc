@@ -43,7 +43,7 @@ namespace SapNwRfc
         /// <summary>
         /// Gets a value indicating whether this parameter is defined as optional in SE37.
         /// </summary>
-        bool Optional { get; }
+        bool IsOptional { get; }
 
         /// <summary>
         /// Gets the parameter description.
