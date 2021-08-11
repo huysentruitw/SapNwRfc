@@ -40,12 +40,18 @@ namespace SapNwRfc
         public bool HasParameter(string parameterName)
         {
             RfcResultCode resultCode = _interop.GetParameterDescByName(
-                funcDescHandle: _functionDescriptionHandle,
-                parameterName: parameterName,
-                parameterDescHandle: out IntPtr _,
+                funcDesc: _functionDescriptionHandle,
+                name: parameterName,
+                paramDesc: out RfcParameterDescription _,
                 errorInfo: out RfcErrorInfo _);
 
             return resultCode == RfcResultCode.RFC_OK;
+        }
+
+        /// <inheritdoc cref="ISapFunction"/>
+        public ISapFunctionMetadata GetMetadata()
+        {
+            return new SapFunctionMetadata(_interop, _functionDescriptionHandle);
         }
 
         /// <inheritdoc cref="ISapServerFunction"/>

@@ -178,9 +178,11 @@ class SomeFunctionResult
 ```csharp
 string connectionString = "AppServerHost=MY_SERVER_HOST; SystemNumber=00; User=MY_SAP_USER; Password=SECRET; Client=100; Language=EN; PoolSize=5; Trace=8";
 
-SapServer.InstallGenericServerFunctionHandler(connectionString, function =>
+SapServer.InstallGenericServerFunctionHandler(connectionString, (connection, function) =>
 {
-    switch (function.Name)
+    var attributes = connection.GetAttributes();
+
+    switch (function.GetName())
     {
         case "BAPI_SOME_FUNCTION_NAME":
             var parameters = function.GetParameters<SomeFunctionParameters>();
@@ -197,6 +199,34 @@ string connectionString = "GWHOST=MY_GW_HOST; GWSERV=MY_GW_SERV; PROGRAM_ID=MY_P
 
 using var server = SapServer.Create(connectionString);
 server.Launch();
+```
+
+### Type Metadata
+
+```csharp
+var typeMeta = connection.GetTypeMetadata("MY_STRUCTURE");
+var typeName = typeMeta.GetTypeName();
+var fieldCount = typeMeta.GetFieldCount();
+for (uint i = 0; i < fieldCount; i++)
+{
+    var fieldMeta = typeMeta.GetFieldByIndex(i);
+    var fieldName = fieldMeta.Name;
+    var fieldType = fieldMeta.Type;
+}
+```
+
+### Function Metadata
+
+```csharp
+var funcMeta = connection.GetFunctionMetadata("BAPI_SOME_FUNCTION_NAME");
+var funcName = funcMeta.GetName();
+var parameterCount = funcMeta.GetParameterCount();
+for (uint i = 0; i < parameterCount; i++)
+{
+    var parameterMeta = funcMeta.GetParameterByIndex(i);
+    var parameterName = parameterMeta.Name;
+    var parameterType = parameterMeta.Type;
+}
 ```
 
 ### Ensure the SAP RFC SDK binaries are present

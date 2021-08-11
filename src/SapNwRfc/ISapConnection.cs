@@ -36,6 +36,20 @@ namespace SapNwRfc
         SapConnectionAttributes GetAttributes();
 
         /// <summary>
+        /// Gets the metadata for the specified type name.
+        /// </summary>
+        /// <param name="typeName">The type name.</param>
+        /// <returns>The metadata for the type name.</returns>
+        ISapTypeMetadata GetTypeMetadata(string typeName);
+
+        /// <summary>
+        /// Gets the metadata for the specified function name.
+        /// </summary>
+        /// <param name="functionName">The function name.</param>
+        /// <returns>The matadata for the function name.</returns>
+        ISapFunctionMetadata GetFunctionMetadata(string functionName);
+
+        /// <summary>
         /// Creates a <see cref="SapFunction"/> object for invoking the remote function.
         /// </summary>
         /// <param name="name">The name of the remote function.</param>
