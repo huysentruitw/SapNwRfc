@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-
 namespace SapNwRfc
 {
     /// <summary>
@@ -16,13 +14,6 @@ namespace SapNwRfc
         /// <summary>
         /// Gets the fields.
         /// </summary>
-        IReadOnlyList<ISapFieldMetadata> Fields { get; }
-
-        /// <summary>
-        /// Gets field metadata by name.
-        /// </summary>
-        /// <param name="name">The name of the field.</param>
-        /// <returns>The field metadata.</returns>
-        ISapFieldMetadata GetFieldByName(string name);
+        ISapMetadataCollection<ISapFieldMetadata> Fields { get; }
     }
 }

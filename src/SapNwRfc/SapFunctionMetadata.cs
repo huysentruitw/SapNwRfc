@@ -1,6 +1,4 @@
 using System;
-using System.Collections.Generic;
-using SapNwRfc.Internal;
 using SapNwRfc.Internal.Interop;
 
 namespace SapNwRfc
@@ -12,8 +10,8 @@ namespace SapNwRfc
     {
         private readonly RfcInterop _interop;
         private readonly IntPtr _functionDescHandle;
-        private MetadataList<ISapParameterMetadata> _parameters;
-        private MetadataList<ISapExceptionMetadata> _exceptions;
+        private SapMetadataCollection<ISapParameterMetadata> _parameters;
+        private SapMetadataCollection<ISapExceptionMetadata> _exceptions;
 
         internal SapFunctionMetadata(RfcInterop interop, IntPtr functionDescHandle)
         {
@@ -35,8 +33,8 @@ namespace SapNwRfc
         }
 
         /// <inheritdoc cref="ISapFunctionMetadata"/>
-        public IReadOnlyList<ISapParameterMetadata> Parameters => _parameters ??
-            (_parameters = new MetadataList<ISapParameterMetadata>(GetParameterByIndex, GetParameterCount));
+        public ISapMetadataCollection<ISapParameterMetadata> Parameters => _parameters ??
+            (_parameters = new SapMetadataCollection<ISapParameterMetadata>(GetParameterByIndex, GetParameterByName, GetParameterCount));
 
         private ISapParameterMetadata GetParameterByIndex(int index)
         {
@@ -63,8 +61,7 @@ namespace SapNwRfc
             return (int)count;
         }
 
-        /// <inheritdoc cref="ISapFunctionMetadata"/>
-        public ISapParameterMetadata GetParameterByName(string name)
+        private ISapParameterMetadata GetParameterByName(string name)
         {
             RfcResultCode resultCode = _interop.GetParameterDescByName(
                 funcDesc: _functionDescHandle,
@@ -72,14 +69,17 @@ namespace SapNwRfc
                 paramDesc: out RfcParameterDescription paramDesc,
                 errorInfo: out RfcErrorInfo errorInfo);
 
+            if (resultCode == RfcResultCode.RFC_INVALID_PARAMETER)
+                return null;
+
             errorInfo.ThrowOnError();
 
             return new SapParameterMetadata(_interop, paramDesc);
         }
 
         /// <inheritdoc cref="ISapFunctionMetadata"/>
-        public IReadOnlyList<ISapExceptionMetadata> Exceptions => _exceptions ??
-            (_exceptions = new MetadataList<ISapExceptionMetadata>(GetExceptionByIndex, GetExceptionCount));
+        public ISapMetadataCollection<ISapExceptionMetadata> Exceptions => _exceptions ??
+            (_exceptions = new SapMetadataCollection<ISapExceptionMetadata>(GetExceptionByIndex, GetExceptionByName, GetExceptionCount));
 
         private ISapExceptionMetadata GetExceptionByIndex(int index)
         {
@@ -106,14 +106,16 @@ namespace SapNwRfc
             return (int)count;
         }
 
-        /// <inheritdoc cref="ISapFunctionMetadata"/>
-        public ISapExceptionMetadata GetExceptionByName(string name)
+        private ISapExceptionMetadata GetExceptionByName(string name)
         {
             RfcResultCode resultCode = _interop.GetExceptionDescByName(
                 funcDesc: _functionDescHandle,
                 name: name,
                 excDesc: out RfcExceptionDescription excDesc,
                 errorInfo: out RfcErrorInfo errorInfo);
+
+            if (resultCode == RfcResultCode.RFC_INVALID_PARAMETER)
+                return null;
 
             errorInfo.ThrowOnError();
 

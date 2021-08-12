@@ -212,6 +212,7 @@ foreach (var fieldMetadata in typeMetadata.Fields)
     var fieldName = fieldMetadata.Name;
     var fieldType = fieldMetadata.Type;
 }
+typeMetadata.Fields.TryGetValue("FIELD_NAME", out var fieldNameMetadata);
 ```
 
 ### Function Metadata
@@ -225,6 +226,7 @@ foreach (var parameterMetadata in functionMetadata.Parameters)
     var parameterName = parameterMetadata.Name;
     var parameterType = parameterMetadata.Type;
 }
+functionMetadata.Parameters.TryGetValue("PARAMETER_NAME", out var parameterNameMetadata);
 ```
 
 ### Ensure the SAP RFC SDK binaries are present

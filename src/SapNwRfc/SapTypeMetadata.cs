@@ -1,6 +1,4 @@
 using System;
-using System.Collections.Generic;
-using SapNwRfc.Internal;
 using SapNwRfc.Internal.Interop;
 
 namespace SapNwRfc
@@ -12,7 +10,7 @@ namespace SapNwRfc
     {
         private readonly RfcInterop _interop;
         private readonly IntPtr _typeDescription;
-        private MetadataList<ISapFieldMetadata> _fields;
+        private SapMetadataCollection<ISapFieldMetadata> _fields;
 
         internal SapTypeMetadata(RfcInterop interop, IntPtr typeDescription)
         {
@@ -34,8 +32,8 @@ namespace SapNwRfc
         }
 
         /// <inheritdoc cref="ISapTypeMetadata"/>
-        public IReadOnlyList<ISapFieldMetadata> Fields => _fields ??
-            (_fields = new MetadataList<ISapFieldMetadata>(GetFieldByIndex, GetFieldCount));
+        public ISapMetadataCollection<ISapFieldMetadata> Fields => _fields ??
+            (_fields = new SapMetadataCollection<ISapFieldMetadata>(GetFieldByIndex, GetFieldByName, GetFieldCount));
 
         private ISapFieldMetadata GetFieldByIndex(int index)
         {
@@ -62,14 +60,16 @@ namespace SapNwRfc
             return (int)count;
         }
 
-        /// <inheritdoc cref="ISapTypeMetadata"/>
-        public ISapFieldMetadata GetFieldByName(string name)
+        private ISapFieldMetadata GetFieldByName(string name)
         {
             RfcResultCode resultCode = _interop.GetFieldDescByName(
                 typeHandle: _typeDescription,
                 name: name,
                 fieldDesc: out RfcFieldDescription fieldDesc,
                 errorInfo: out RfcErrorInfo errorInfo);
+
+            if (resultCode == RfcResultCode.RFC_INVALID_PARAMETER)
+                return null;
 
             errorInfo.ThrowOnError();
 

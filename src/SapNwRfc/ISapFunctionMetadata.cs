@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-
 namespace SapNwRfc
 {
     /// <summary>
@@ -16,25 +14,11 @@ namespace SapNwRfc
         /// <summary>
         /// Gets the parameters.
         /// </summary>
-        IReadOnlyList<ISapParameterMetadata> Parameters { get; }
-
-        /// <summary>
-        /// Gets parameter metadata by name.
-        /// </summary>
-        /// <param name="name">The name of the parameter.</param>
-        /// <returns>The parameter metadata.</returns>
-        ISapParameterMetadata GetParameterByName(string name);
+        ISapMetadataCollection<ISapParameterMetadata> Parameters { get; }
 
         /// <summary>
         /// Gets the exceptions.
         /// </summary>
-        IReadOnlyList<ISapExceptionMetadata> Exceptions { get; }
-
-        /// <summary>
-        /// Gets exception metadata by name.
-        /// </summary>
-        /// <param name="name">The name of the exception.</param>
-        /// <returns>The exception metadata.</returns>
-        ISapExceptionMetadata GetExceptionByName(string name);
+        ISapMetadataCollection<ISapExceptionMetadata> Exceptions { get; }
     }
 }
