@@ -9,7 +9,7 @@ namespace SapNwRfc
         /// Gets the name of the type.
         /// </summary>
         /// <returns>The type name.</returns>
-        string GetTypeName();
+        string GetName();
 
         /// <summary>
         /// Gets the fields.

@@ -19,7 +19,7 @@ namespace SapNwRfc
         }
 
         /// <inheritdoc cref="ISapTypeMetadata"/>
-        public string GetTypeName()
+        public string GetName()
         {
             RfcResultCode resultCode = _interop.GetTypeName(
                 rfcHandle: _typeDescription,
