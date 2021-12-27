@@ -254,7 +254,7 @@ namespace SapNwRfc.Internal.Interop
         public delegate RfcResultCode RfcServerFunction(IntPtr connectionHandle, IntPtr functionHandle, out RfcErrorInfo errorInfo);
 
         [UnmanagedFunctionPointer(CallingConvention.StdCall, CharSet = CharSet.Unicode)]
-        public delegate RfcResultCode RfcFunctionDescriptionCallback(string functionName, ref RfcAttributes attributes, out IntPtr funcDescHandle);
+        public delegate RfcResultCode RfcFunctionDescriptionCallback(string functionName, RfcAttributes attributes, ref IntPtr funcDescHandle);
 
         [DllImport(SapNwRfcDllName)]
         private static extern RfcResultCode RfcInstallGenericServerFunction(RfcServerFunction serverFunction, RfcFunctionDescriptionCallback funcDescPointer, out RfcErrorInfo errorInfo);
