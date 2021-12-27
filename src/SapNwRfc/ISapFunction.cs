@@ -15,6 +15,11 @@ namespace SapNwRfc
         bool HasParameter(string parameterName);
 
         /// <summary>
+        /// Gets the metadata for this function.
+        /// </summary>
+        ISapFunctionMetadata Metadata { get; }
+
+        /// <summary>
         /// Invokes the remote function.
         /// </summary>
         void Invoke();

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Diagnostics.CodeAnalysis;
 using FluentAssertions;
 using Moq;
@@ -46,7 +46,7 @@ namespace SapNwRfc.Tests
         public void HasParameter_ParameterExists_ShouldReturnTrue()
         {
             // Arrange
-            IntPtr parameterDescHandle;
+            RfcParameterDescription parameterDescHandle;
             RfcErrorInfo errorInfo;
             _interopMock
                 .Setup(x => x.GetParameterDescByName(It.IsAny<IntPtr>(), "PAR123", out parameterDescHandle, out errorInfo))
@@ -64,7 +64,7 @@ namespace SapNwRfc.Tests
         public void HasParameter_ParameterDoesNotExist_ShouldReturnFalse()
         {
             // Arrange
-            IntPtr parameterDescHandle;
+            RfcParameterDescription parameterDescHandle;
             RfcErrorInfo errorInfo;
             _interopMock
                 .Setup(x => x.GetParameterDescByName(It.IsAny<IntPtr>(), "PAR123", out parameterDescHandle, out errorInfo))

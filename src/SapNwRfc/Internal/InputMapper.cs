@@ -27,7 +27,7 @@ namespace SapNwRfc.Internal
 
         private static MethodInfo GetFieldApplyMethod()
         {
-            Expression<Action<IField>> expression = field => field.Apply(default(RfcInterop), default(IntPtr));
+            Expression<Action<IField>> expression = field => field.Apply(default, default);
             return ((MethodCallExpression)expression.Body).Method;
         }
 

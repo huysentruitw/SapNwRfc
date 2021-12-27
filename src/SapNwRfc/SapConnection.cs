@@ -122,6 +122,32 @@ namespace SapNwRfc
         }
 
         /// <inheritdoc cref="ISapConnection"/>
+        public ISapTypeMetadata GetTypeMetadata(string typeName)
+        {
+            IntPtr typeDescriptionHandle = _interop.GetTypeDesc(
+               rfcHandle: _rfcConnectionHandle,
+               typeName: typeName,
+               errorInfo: out RfcErrorInfo errorInfo);
+
+            errorInfo.ThrowOnError();
+
+            return new SapTypeMetadata(_interop, typeDescriptionHandle);
+        }
+
+        /// <inheritdoc cref="ISapConnection"/>
+        public ISapFunctionMetadata GetFunctionMetadata(string functionName)
+        {
+            IntPtr functionDescriptionHandle = _interop.GetFunctionDesc(
+               rfcHandle: _rfcConnectionHandle,
+               funcName: functionName,
+               errorInfo: out RfcErrorInfo errorInfo);
+
+            errorInfo.ThrowOnError();
+
+            return new SapFunctionMetadata(_interop, functionDescriptionHandle);
+        }
+
+        /// <inheritdoc cref="ISapConnection"/>
         public ISapFunction CreateFunction(string name)
         {
             IntPtr functionDescriptionHandle = _interop.GetFunctionDesc(
