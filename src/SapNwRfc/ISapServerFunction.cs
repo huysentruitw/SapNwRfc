@@ -8,7 +8,7 @@ namespace SapNwRfc
         /// <summary>
         /// Gets the Name of the function.
         /// </summary>
-        /// <returns>the name of the function</returns>
+        /// <returns>the name of the function.</returns>
         string GetName();
 
         /// <summary>
@@ -17,6 +17,11 @@ namespace SapNwRfc
         /// <param name="parameterName">The parameter name.</param>
         /// <returns>Whether the parameter name exists.</returns>
         bool HasParameter(string parameterName);
+
+        /// <summary>
+        /// Gets the metadata for this function.
+        /// </summary>
+        ISapFunctionMetadata Metadata { get; }
 
         /// <summary>
         /// Gets the parameters of the function.

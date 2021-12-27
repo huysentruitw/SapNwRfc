@@ -35,7 +35,7 @@ jobs:
     - name: Test
       run: dotnet test --configuration Release --no-restore --no-build --verbosity normal
     - name: Publish
-      if: github.ref == 'refs/heads/master'
+      if: github.ref == 'refs/heads/master' && github.repository_owner == 'huysentruitw'
       shell: pwsh
       run: |
         Get-ChildItem ".\src" -Filter "*.nupkg" -R | ForEach-Object {

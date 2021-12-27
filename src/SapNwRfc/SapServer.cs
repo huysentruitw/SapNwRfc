@@ -109,7 +109,7 @@ namespace SapNwRfc
             RfcResultCode resultCode = interop.InstallGenericServerFunction(
                 serverFunction: (IntPtr connectionHandle, IntPtr functionHandle, out RfcErrorInfo errorInfo)
                                     => HandleGenericFunction(interop, action, connectionHandle, functionHandle, out errorInfo),
-                funcDescPointer: (string functionName, ref RfcAttributes attributes, out IntPtr funcDescHandle)
+                funcDescPointer: (string functionName, RfcAttributes attributes, ref IntPtr funcDescHandle)
                                     => HandleGenericMetadata(interop, parameters, functionName, out funcDescHandle),
                 out RfcErrorInfo installFunctionErrorInfo);
 

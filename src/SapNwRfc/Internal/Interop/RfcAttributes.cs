@@ -6,7 +6,7 @@ namespace SapNwRfc.Internal.Interop
     internal struct RfcAttributes
     {
         [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 64 + 1)]
-        public string Dest;
+        public string Destination;
 
         [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 100 + 1)]
         public string Host;
@@ -15,10 +15,10 @@ namespace SapNwRfc.Internal.Interop
         public string PartnerHost;
 
         [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 2 + 1)]
-        public string SysNumber;
+        public string SystemNumber;
 
         [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 8 + 1)]
-        public string SysId;
+        public string SystemId;
 
         [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 3 + 1)]
         public string Client;
@@ -51,19 +51,19 @@ namespace SapNwRfc.Internal.Interop
         public string PartnerType;
 
         [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 4 + 1)]
-        public string Rel;
+        public string SystemRelease;
 
         [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 4 + 1)]
-        public string PartnerRel;
+        public string PartnerSystemRelease;
 
         [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 4 + 1)]
-        public string KernelRel;
+        public string PartnerKernelRelease;
 
         [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 8 + 1)]
-        public string CpicConvId;
+        public string CpicConversionId;
 
         [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 128 + 1)]
-        public string ProgName;
+        public string ProgramName;
 
         [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 1 + 1)]
         public string PartnerBytesPerChar;
@@ -72,7 +72,7 @@ namespace SapNwRfc.Internal.Interop
         public string PartnerSystemCodepage;
 
         [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 15 + 1)]
-        public string PartnerIP;
+        public string PartnerIPv4;
 
         [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 45 + 1)]
         public string PartnerIPv6;

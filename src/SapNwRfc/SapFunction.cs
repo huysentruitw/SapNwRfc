@@ -13,6 +13,7 @@ namespace SapNwRfc
         private readonly IntPtr _rfcConnectionHandle;
         private readonly IntPtr _functionDescriptionHandle;
         private readonly IntPtr _functionHandle;
+        private SapFunctionMetadata _functionMetadata;
 
         private SapFunction(
             RfcInterop interop,
@@ -60,13 +61,16 @@ namespace SapNwRfc
         public bool HasParameter(string parameterName)
         {
             RfcResultCode resultCode = _interop.GetParameterDescByName(
-                funcDescHandle: _functionDescriptionHandle,
-                parameterName: parameterName,
-                parameterDescHandle: out IntPtr parameterDescHandle,
+                funcDesc: _functionDescriptionHandle,
+                name: parameterName,
+                paramDesc: out RfcParameterDescription parameterDescHandle,
                 errorInfo: out RfcErrorInfo errorInfo);
 
             return resultCode == RfcResultCode.RFC_OK;
         }
+
+        /// <inheritdoc cref="ISapFunction"/>
+        public ISapFunctionMetadata Metadata => _functionMetadata ?? (_functionMetadata = new SapFunctionMetadata(_interop, _functionDescriptionHandle));
 
         /// <inheritdoc cref="ISapFunction"/>
         public void Invoke()

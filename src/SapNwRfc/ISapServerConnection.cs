@@ -9,6 +9,6 @@ namespace SapNwRfc
         /// Gets the connection attributes of an connected connection.
         /// </summary>
         /// <returns>The connection attributes.</returns>
-        SapConnectionAttributes GetAttributes();
+        SapAttributes GetAttributes();
     }
 }

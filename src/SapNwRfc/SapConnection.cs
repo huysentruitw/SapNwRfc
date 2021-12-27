@@ -109,7 +109,7 @@ namespace SapNwRfc
         }
 
         /// <inheritdoc cref="ISapConnection"/>
-        public SapConnectionAttributes GetAttributes()
+        public SapAttributes GetAttributes()
         {
             RfcResultCode resultCode = _interop.GetConnectionAttributes(
                 rfcHandle: _rfcConnectionHandle,
@@ -118,7 +118,33 @@ namespace SapNwRfc
 
             resultCode.ThrowOnError(errorInfo);
 
-            return new SapConnectionAttributes(attributes);
+            return new SapAttributes(attributes);
+        }
+
+        /// <inheritdoc cref="ISapConnection"/>
+        public ISapTypeMetadata GetTypeMetadata(string typeName)
+        {
+            IntPtr typeDescriptionHandle = _interop.GetTypeDesc(
+               rfcHandle: _rfcConnectionHandle,
+               typeName: typeName,
+               errorInfo: out RfcErrorInfo errorInfo);
+
+            errorInfo.ThrowOnError();
+
+            return new SapTypeMetadata(_interop, typeDescriptionHandle);
+        }
+
+        /// <inheritdoc cref="ISapConnection"/>
+        public ISapFunctionMetadata GetFunctionMetadata(string functionName)
+        {
+            IntPtr functionDescriptionHandle = _interop.GetFunctionDesc(
+               rfcHandle: _rfcConnectionHandle,
+               funcName: functionName,
+               errorInfo: out RfcErrorInfo errorInfo);
+
+            errorInfo.ThrowOnError();
+
+            return new SapFunctionMetadata(_interop, functionDescriptionHandle);
         }
 
         /// <inheritdoc cref="ISapConnection"/>
