@@ -50,10 +50,10 @@ namespace SapNwRfc
         ISapFunctionMetadata GetFunctionMetadata(string functionName);
 
         /// <summary>
-        /// Creates a <see cref="SapFunction"/> object for invoking the remote function.
+        /// Creates a <see cref="ISapFunction"/> object for invoking the remote function.
         /// </summary>
         /// <param name="name">The name of the remote function.</param>
-        /// <returns>The <see cref="SapFunction"/> object.</returns>
+        /// <returns>The <see cref="ISapFunction"/> object.</returns>
         ISapFunction CreateFunction(string name);
     }
 }
