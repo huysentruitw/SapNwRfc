@@ -53,6 +53,37 @@ namespace SapNwRfc
             return new SapServer(rfcInterop, rfcServerHandle, parameters);
         }
 
+        private EventHandler<SapServerErrorEventArgs> _error;
+
+        /// <inheritdoc cref="ISapServer"/>
+        public event EventHandler<SapServerErrorEventArgs> Error
+        {
+            add
+            {
+                if (_error == null)
+                {
+                    RfcResultCode resultCode = _interop.AddServerErrorListener(
+                        rfcHandle: _rfcServerHandle,
+                        errorListener: ServerErrorListener,
+                        errorInfo: out RfcErrorInfo errorInfo);
+
+                    resultCode.ThrowOnError(errorInfo);
+                }
+
+                _error += value;
+            }
+
+            remove
+            {
+                _error -= value;
+            }
+        }
+
+        private void ServerErrorListener(IntPtr serverHandle, in RfcAttributes clientInfo, in RfcErrorInfo errorInfo)
+        {
+            _error?.Invoke(this, new SapServerErrorEventArgs(new SapAttributes(clientInfo), new SapErrorInfo(errorInfo)));
+        }
+
         /// <inheritdoc cref="ISapServer"/>
         public void Launch()
         {
