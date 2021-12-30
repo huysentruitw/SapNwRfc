@@ -121,5 +121,8 @@ namespace SapNwRfc
 
             return new SapExceptionMetadata(excDesc);
         }
+
+        // Used by SapServer.InstallGenericServerFunctionHandler
+        internal IntPtr GetFunctionDescHandle() => _functionDescHandle;
     }
 }

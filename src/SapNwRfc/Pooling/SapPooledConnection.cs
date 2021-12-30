@@ -59,6 +59,46 @@ namespace SapNwRfc.Pooling
         }
 
         /// <inheritdoc cref="ISapPooledConnection"/>
+        public ISapTypeMetadata GetTypeMetadata(string typeName, CancellationToken cancellationToken = default)
+        {
+            _connection = _connection ?? _pool.GetConnection(cancellationToken);
+
+            try
+            {
+                return _connection.GetTypeMetadata(typeName);
+            }
+            catch (SapCommunicationFailedException)
+            {
+                // Let the pool collect the dead connection
+                _pool.ForgetConnection(_connection);
+
+                // Retry invocation with new connection from the pool
+                _connection = _pool.GetConnection(cancellationToken);
+                return _connection.GetTypeMetadata(typeName);
+            }
+        }
+
+        /// <inheritdoc cref="ISapPooledConnection"/>
+        public ISapFunctionMetadata GetFunctionMetadata(string functionName, CancellationToken cancellationToken = default)
+        {
+            _connection = _connection ?? _pool.GetConnection(cancellationToken);
+
+            try
+            {
+                return _connection.GetFunctionMetadata(functionName);
+            }
+            catch (SapCommunicationFailedException)
+            {
+                // Let the pool collect the dead connection
+                _pool.ForgetConnection(_connection);
+
+                // Retry invocation with new connection from the pool
+                _connection = _pool.GetConnection(cancellationToken);
+                return _connection.GetFunctionMetadata(functionName);
+            }
+        }
+
+        /// <inheritdoc cref="ISapPooledConnection"/>
         public void InvokeFunction(string name, CancellationToken cancellationToken = default)
         {
             _connection = _connection ?? _pool.GetConnection(cancellationToken);
