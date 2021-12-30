@@ -198,6 +198,7 @@ SapServer.InstallGenericServerFunctionHandler(connectionString, (connection, fun
 string connectionString = "GWHOST=MY_GW_HOST; GWSERV=MY_GW_SERV; PROGRAM_ID=MY_PROGRAM_ID; REG_COUNT=1";
 
 using var server = SapServer.Create(connectionString);
+server.Error += (object sender, SapServerErrorEventArgs args) => Console.WriteLine(args.Error.Message);
 server.Launch();
 ```
 

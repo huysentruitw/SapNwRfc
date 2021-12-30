@@ -8,6 +8,11 @@ namespace SapNwRfc
     public interface ISapServer : IDisposable
     {
         /// <summary>
+        /// Event which is called when an error occurs.
+        /// </summary>
+        event EventHandler<SapServerErrorEventArgs> Error;
+
+        /// <summary>
         /// Launches the server.
         /// </summary>
         void Launch();
