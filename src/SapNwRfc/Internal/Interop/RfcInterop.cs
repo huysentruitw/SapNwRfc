@@ -256,12 +256,6 @@ namespace SapNwRfc.Internal.Interop
             => RfcSetTime(dataHandle, name, time, out errorInfo);
 
         [DllImport(SapNwRfcDllName, CharSet = CharSet.Unicode)]
-        private static extern RfcResultCode RfcGetBytes(IntPtr dataHandle, string name, byte[] bytesBuffer, uint bufferLength, out RfcErrorInfo errorInfo);
-
-        public virtual RfcResultCode GetBytes(IntPtr dataHandle, string name, byte[] bytesBuffer, uint bufferLength, out RfcErrorInfo errorInfo)
-            => RfcGetBytes(dataHandle, name, bytesBuffer, bufferLength, out errorInfo);
-
-        [DllImport(SapNwRfcDllName, CharSet = CharSet.Unicode)]
         private static extern RfcResultCode RfcGetXString(IntPtr dataHandle, string name, byte[] bytesBuffer, uint bufferLength, out uint xstringLength, out RfcErrorInfo errorInfo);
 
         public virtual RfcResultCode GetXString(IntPtr dataHandle, string name, byte[] bytesBuffer, uint bufferLength, out uint xstringLength, out RfcErrorInfo errorInfo)

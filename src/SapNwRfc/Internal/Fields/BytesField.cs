@@ -29,6 +29,7 @@ namespace SapNwRfc.Internal.Fields
 
         public static BytesField Extract(RfcInterop interop, IntPtr dataHandle, string name, int? bufferLength)
         {
+            uint xstringLength;
             if (bufferLength == null)
             {
                 RfcResultCode resultCode = interop.GetXString(
@@ -36,42 +37,32 @@ namespace SapNwRfc.Internal.Fields
                     name: name,
                     bytesBuffer: Array.Empty<byte>(),
                     bufferLength: 0,
-                    xstringLength: out uint xstringLength,
+                    xstringLength: out xstringLength,
                     errorInfo: out RfcErrorInfo errorInfo);
-
-                if (xstringLength == 0)
-                {
-                    return new BytesField(name, Array.Empty<byte>());
-                }
 
                 if (resultCode != RfcResultCode.RFC_BUFFER_TOO_SMALL)
                 {
                     resultCode.ThrowOnError(errorInfo);
-                    return new BytesField(name, Array.Empty<byte>());
                 }
+            }
+            else
+            {
+                xstringLength = (uint)bufferLength;
+            }
 
+            if (xstringLength == 0)
+            {
+                return new BytesField(name, Array.Empty<byte>());
+            }
+            else
+            {
                 var buffer = new byte[xstringLength];
-                resultCode = interop.GetXString(
+                RfcResultCode resultCode = interop.GetXString(
                     dataHandle: dataHandle,
                     name: name,
                     bytesBuffer: buffer,
                     bufferLength: (uint)buffer.Length,
                     xstringLength: out _,
-                    errorInfo: out errorInfo);
-
-                resultCode.ThrowOnError(errorInfo);
-
-                return new BytesField(name, buffer);
-            }
-            else
-            {
-                var buffer = new byte[bufferLength.Value];
-
-                RfcResultCode resultCode = interop.GetBytes(
-                    dataHandle: dataHandle,
-                    name: name,
-                    bytesBuffer: buffer,
-                    bufferLength: (uint)buffer.Length,
                     errorInfo: out RfcErrorInfo errorInfo);
 
                 resultCode.ThrowOnError(errorInfo);
