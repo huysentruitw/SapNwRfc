@@ -19,12 +19,7 @@ namespace SapNwRfc.Internal.Fields
 
         public override void Apply(RfcInterop interop, IntPtr dataHandle)
         {
-#if NETSTANDARD2_0
             char[] buffer = (Value?.ToString(RfcDateFormat, CultureInfo.InvariantCulture) ?? ZeroRfcDateString).ToCharArray();
-#else
-            char[] buffer = ZeroRfcDateString.ToCharArray();
-            Value?.TryFormat(buffer, out var _, RfcDateFormat, CultureInfo.InvariantCulture);
-#endif
 
             RfcResultCode resultCode = interop.SetDate(
                 dataHandle: dataHandle,
@@ -47,17 +42,10 @@ namespace SapNwRfc.Internal.Fields
 
             resultCode.ThrowOnError(errorInfo);
 
-#if NETSTANDARD2_0
             string dateString = new string(buffer);
 
             if (dateString == EmptyRfcDateString || dateString == ZeroRfcDateString)
                 return new DateField(name, null);
-#else
-            Span<char> dateString = buffer.AsSpan();
-
-            if (dateString.SequenceEqual(EmptyRfcDateString) || dateString.SequenceEqual(ZeroRfcDateString))
-                return new DateField(name, null);
-#endif
 
             if (!DateTime.TryParseExact(dateString, RfcDateFormat, CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime date))
                 return new DateField(name, null);

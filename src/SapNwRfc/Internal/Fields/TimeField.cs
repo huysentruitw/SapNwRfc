@@ -19,12 +19,7 @@ namespace SapNwRfc.Internal.Fields
 
         public override void Apply(RfcInterop interop, IntPtr dataHandle)
         {
-#if NETSTANDARD2_0
             char[] buffer = (Value?.ToString(RfcTimeFormat, CultureInfo.InvariantCulture) ?? ZeroRfcTimeString).ToCharArray();
-#else
-            char[] buffer = ZeroRfcTimeString.ToCharArray();
-            Value?.TryFormat(buffer, out var _, RfcTimeFormat, CultureInfo.InvariantCulture);
-#endif
 
             RfcResultCode resultCode = interop.SetTime(
                 dataHandle: dataHandle,
@@ -47,17 +42,10 @@ namespace SapNwRfc.Internal.Fields
 
             resultCode.ThrowOnError(errorInfo);
 
-#if NETSTANDARD2_0
             string timeString = new string(buffer);
 
             if (timeString == EmptyRfcTimeString || timeString == ZeroRfcTimeString)
                 return new TimeField(name, null);
-#else
-            Span<char> timeString = buffer.AsSpan();
-
-            if (timeString.SequenceEqual(EmptyRfcTimeString) || timeString.SequenceEqual(ZeroRfcTimeString))
-                return new TimeField(name, null);
-#endif
 
             if (!TimeSpan.TryParseExact(timeString, RfcTimeFormat, CultureInfo.InvariantCulture, out TimeSpan time))
                 return new TimeField(name, null);
