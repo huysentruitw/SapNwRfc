@@ -1,6 +1,6 @@
-﻿using System;
+using System;
 using System.Diagnostics.CodeAnalysis;
-using System.Text.RegularExpressions;
+using System.Globalization;
 using SapNwRfc.Internal.Interop;
 
 namespace SapNwRfc.Internal.Fields
@@ -8,6 +8,7 @@ namespace SapNwRfc.Internal.Fields
     [SuppressMessage("ReSharper", "MemberCanBePrivate.Global", Justification = "Reflection use")]
     internal sealed class TimeField : Field<TimeSpan?>
     {
+        private const string RfcTimeFormat = "hhmmss";
         private static readonly string ZeroRfcTimeString = new string('0', 6);
         private static readonly string EmptyRfcTimeString = new string(' ', 6);
 
@@ -18,7 +19,7 @@ namespace SapNwRfc.Internal.Fields
 
         public override void Apply(RfcInterop interop, IntPtr dataHandle)
         {
-            string stringValue = Value?.ToString("hhmmss") ?? ZeroRfcTimeString;
+            string stringValue = Value?.ToString(RfcTimeFormat, CultureInfo.InvariantCulture) ?? ZeroRfcTimeString;
 
             RfcResultCode resultCode = interop.SetTime(
                 dataHandle: dataHandle,
@@ -46,15 +47,10 @@ namespace SapNwRfc.Internal.Fields
             if (timeString == EmptyRfcTimeString || timeString == ZeroRfcTimeString)
                 return new TimeField(name, null);
 
-            Match match = Regex.Match(timeString, "^(?<Hours>[0-9]{2})(?<Minutes>[0-9]{2})(?<Seconds>[0-9]{2})$");
-            if (!match.Success)
+            if (!TimeSpan.TryParseExact(timeString, RfcTimeFormat, CultureInfo.InvariantCulture, out TimeSpan time))
                 return new TimeField(name, null);
 
-            int hours = int.Parse(match.Groups["Hours"].Value);
-            int minutes = int.Parse(match.Groups["Minutes"].Value);
-            int seconds = int.Parse(match.Groups["Seconds"].Value);
-
-            return new TimeField(name, new TimeSpan(hours, minutes, seconds));
+            return new TimeField(name, time);
         }
 
         [ExcludeFromCodeCoverage]

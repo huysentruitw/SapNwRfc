@@ -1,6 +1,6 @@
-﻿using System;
+using System;
 using System.Diagnostics.CodeAnalysis;
-using System.Text.RegularExpressions;
+using System.Globalization;
 using SapNwRfc.Internal.Interop;
 
 namespace SapNwRfc.Internal.Fields
@@ -8,6 +8,7 @@ namespace SapNwRfc.Internal.Fields
     [SuppressMessage("ReSharper", "MemberCanBePrivate.Global", Justification = "Reflection use")]
     internal sealed class DateField : Field<DateTime?>
     {
+        private const string RfcDateFormat = "yyyyMMdd";
         private static readonly string ZeroRfcDateString = new string('0', 8);
         private static readonly string EmptyRfcDateString = new string(' ', 8);
 
@@ -18,10 +19,12 @@ namespace SapNwRfc.Internal.Fields
 
         public override void Apply(RfcInterop interop, IntPtr dataHandle)
         {
+            string stringValue = Value?.ToString(RfcDateFormat, CultureInfo.InvariantCulture) ?? ZeroRfcDateString;
+
             RfcResultCode resultCode = interop.SetDate(
                 dataHandle: dataHandle,
                 name: Name,
-                date: (Value?.ToString("yyyyMMdd") ?? ZeroRfcDateString).ToCharArray(),
+                date: stringValue.ToCharArray(),
                 errorInfo: out RfcErrorInfo errorInfo);
 
             resultCode.ThrowOnError(errorInfo);
@@ -44,15 +47,10 @@ namespace SapNwRfc.Internal.Fields
             if (dateString == EmptyRfcDateString || dateString == ZeroRfcDateString)
                 return new DateField(name, null);
 
-            Match match = Regex.Match(dateString, "^(?<Year>[0-9]{4})(?<Month>[0-9]{2})(?<Day>[0-9]{2})$");
-            if (!match.Success)
+            if (!DateTime.TryParseExact(dateString, RfcDateFormat, CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime date))
                 return new DateField(name, null);
 
-            int year = int.Parse(match.Groups["Year"].Value);
-            int month = int.Parse(match.Groups["Month"].Value);
-            int day = int.Parse(match.Groups["Day"].Value);
-
-            return new DateField(name, new DateTime(year, month, day));
+            return new DateField(name, date);
         }
 
         [ExcludeFromCodeCoverage]
