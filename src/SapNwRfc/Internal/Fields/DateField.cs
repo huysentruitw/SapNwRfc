@@ -8,9 +8,9 @@ namespace SapNwRfc.Internal.Fields
     [SuppressMessage("ReSharper", "MemberCanBePrivate.Global", Justification = "Reflection use")]
     internal sealed class DateField : Field<DateTime?>
     {
+        private const string RfcDateFormat = "yyyyMMdd";
         private static readonly string ZeroRfcDateString = new string('0', 8);
         private static readonly string EmptyRfcDateString = new string(' ', 8);
-        private static readonly string RfcDateFormat = "yyyyMMdd";
 
         public DateField(string name, DateTime? value)
             : base(name, value)
@@ -19,12 +19,12 @@ namespace SapNwRfc.Internal.Fields
 
         public override void Apply(RfcInterop interop, IntPtr dataHandle)
         {
-            char[] buffer = (Value?.ToString(RfcDateFormat, CultureInfo.InvariantCulture) ?? ZeroRfcDateString).ToCharArray();
+            string stringValue = Value?.ToString(RfcDateFormat, CultureInfo.InvariantCulture) ?? ZeroRfcDateString;
 
             RfcResultCode resultCode = interop.SetDate(
                 dataHandle: dataHandle,
                 name: Name,
-                date: buffer,
+                date: stringValue.ToCharArray(),
                 errorInfo: out RfcErrorInfo errorInfo);
 
             resultCode.ThrowOnError(errorInfo);

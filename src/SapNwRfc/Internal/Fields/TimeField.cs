@@ -8,9 +8,9 @@ namespace SapNwRfc.Internal.Fields
     [SuppressMessage("ReSharper", "MemberCanBePrivate.Global", Justification = "Reflection use")]
     internal sealed class TimeField : Field<TimeSpan?>
     {
+        private const string RfcTimeFormat = "hhmmss";
         private static readonly string ZeroRfcTimeString = new string('0', 6);
         private static readonly string EmptyRfcTimeString = new string(' ', 6);
-        private static readonly string RfcTimeFormat = "hhmmss";
 
         public TimeField(string name, TimeSpan? value)
             : base(name, value)
@@ -19,12 +19,12 @@ namespace SapNwRfc.Internal.Fields
 
         public override void Apply(RfcInterop interop, IntPtr dataHandle)
         {
-            char[] buffer = (Value?.ToString(RfcTimeFormat, CultureInfo.InvariantCulture) ?? ZeroRfcTimeString).ToCharArray();
+            string stringValue = Value?.ToString(RfcTimeFormat, CultureInfo.InvariantCulture) ?? ZeroRfcTimeString;
 
             RfcResultCode resultCode = interop.SetTime(
                 dataHandle: dataHandle,
                 name: Name,
-                time: buffer,
+                time: stringValue.ToCharArray(),
                 out RfcErrorInfo errorInfo);
 
             resultCode.ThrowOnError(errorInfo);
@@ -42,7 +42,7 @@ namespace SapNwRfc.Internal.Fields
 
             resultCode.ThrowOnError(errorInfo);
 
-            string timeString = new string(buffer);
+            var timeString = new string(buffer);
 
             if (timeString == EmptyRfcTimeString || timeString == ZeroRfcTimeString)
                 return new TimeField(name, null);
