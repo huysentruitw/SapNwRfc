@@ -195,16 +195,16 @@ class SomeFunctionResult
 string connectionString = "AppServerHost=MY_SERVER_HOST; SystemNumber=00; User=MY_SAP_USER; Password=SECRET; Client=100; Language=EN; PoolSize=5; Trace=8";
 
 var connectionPool = new SapConnectionPool(connectionString);
-var pooledConnection = new SapPooledConnection(connectionPool);
 
 SapServer.InstallGenericServerFunctionHandler(
 (string functionName, SapAttributes attributes) =>
 {
-    return pooledConnection.GetFunctionMetadata(functionName);
+    using var connection = connectionPool.GetConnection();
+    return connection.GetFunctionMetadata(functionName);
 },
 (ISapServerConnection connection, ISapServerFunction function) =>
 {
-    SapAttributes attributes = connection.GetAttributes();
+    var attributes = connection.GetAttributes();
 
     switch (function.GetName())
     {
