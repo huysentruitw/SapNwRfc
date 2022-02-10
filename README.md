@@ -199,6 +199,7 @@ string connectionString = "GWHOST=MY_GW_HOST; GWSERV=MY_GW_SERV; PROGRAM_ID=MY_P
 
 using var server = SapServer.Create(connectionString);
 server.Error += (object sender, SapServerErrorEventArgs args) => Console.WriteLine(args.Error.Message);
+server.StateChange += (object sender, SapServerStateChangeEventArgs args) => Console.WriteLine(args.OldState + " -> " + args.NewState);
 server.Launch();
 ```
 

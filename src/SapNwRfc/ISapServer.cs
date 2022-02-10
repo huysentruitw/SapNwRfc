@@ -13,6 +13,11 @@ namespace SapNwRfc
         event EventHandler<SapServerErrorEventArgs> Error;
 
         /// <summary>
+        /// Event which is called when the state changes.
+        /// </summary>
+        event EventHandler<SapServerStateChangeEventArgs> StateChange;
+
+        /// <summary>
         /// Launches the server.
         /// </summary>
         void Launch();

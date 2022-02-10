@@ -334,6 +334,9 @@ namespace SapNwRfc.Internal.Interop
         [UnmanagedFunctionPointer(CallingConvention.StdCall)]
         public delegate void RfcServerErrorListener(IntPtr serverHandle, in RfcAttributes clientInfo, in RfcErrorInfo errorInfo);
 
+        [UnmanagedFunctionPointer(CallingConvention.StdCall)]
+        public delegate void RfcServerStateChangeListener(IntPtr serverHandle, in RfcStateChange stateChange);
+
         [DllImport(SapNwRfcDllName)]
         private static extern RfcResultCode RfcInstallGenericServerFunction(RfcServerFunction serverFunction, RfcFunctionDescriptionCallback funcDescPointer, out RfcErrorInfo errorInfo);
 
@@ -369,6 +372,12 @@ namespace SapNwRfc.Internal.Interop
 
         public virtual RfcResultCode AddServerErrorListener(IntPtr rfcHandle, RfcServerErrorListener errorListener, out RfcErrorInfo errorInfo)
             => RfcAddServerErrorListener(rfcHandle, errorListener, out errorInfo);
+
+        [DllImport(SapNwRfcDllName)]
+        private static extern RfcResultCode RfcAddServerStateChangedListener(IntPtr rfcHandle, RfcServerStateChangeListener stateChangeListener, out RfcErrorInfo errorInfo);
+
+        public virtual RfcResultCode AddServerStateChangedListener(IntPtr rfcHandle, RfcServerStateChangeListener stateChangeListener, out RfcErrorInfo errorInfo)
+            => RfcAddServerStateChangedListener(rfcHandle, stateChangeListener, out errorInfo);
 
         #endregion
     }
