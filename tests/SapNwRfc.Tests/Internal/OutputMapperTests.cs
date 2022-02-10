@@ -238,7 +238,7 @@ namespace SapNwRfc.Tests.Internal
                }));
 
             // Act
-            BytesBufferLengthModel result = OutputMapper.Extract<BytesBufferLengthModel>(_interopMock.Object, DataHandle);
+            FixedLengthBytesModel result = OutputMapper.Extract<FixedLengthBytesModel>(_interopMock.Object, DataHandle);
 
             // Assert
             uint discard;
@@ -308,7 +308,7 @@ namespace SapNwRfc.Tests.Internal
             result.BytesValue.Should().BeEmpty();
         }
 
-        private sealed class BytesBufferLengthModel
+        private sealed class FixedLengthBytesModel
         {
             [SapBufferLength(3)]
             public byte[] BytesValue { get; set; }
