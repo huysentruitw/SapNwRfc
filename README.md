@@ -194,15 +194,20 @@ class SomeFunctionResult
 ```csharp
 string connectionString = "AppServerHost=MY_SERVER_HOST; SystemNumber=00; User=MY_SAP_USER; Password=SECRET; Client=100; Language=EN; PoolSize=5; Trace=8";
 
-var connectionPool = new SapConnectionPool(connectionString);
-
-SapServer.InstallGenericServerFunctionHandler(
-(string functionName, SapAttributes attributes) =>
+SapServer.InstallGenericServerFunctionHandler((string functionName, SapAttributes attributes) =>
 {
-    using var connection = connectionPool.GetConnection();
+    using var connection = new SapConnection(connectionString);
+    connection.Connect();
     return connection.GetFunctionMetadata(functionName);
-},
-(ISapServerConnection connection, ISapServerFunction function) =>
+});
+```
+
+### RFC Server
+
+```csharp
+string connectionString = "GWHOST=MY_GW_HOST; GWSERV=MY_GW_SERV; PROGRAM_ID=MY_PROGRAM_ID; REG_COUNT=1";
+
+using var server = SapServer.Create(connectionString, (ISapServerConnection connection, ISapServerFunction function) =>
 {
     var attributes = connection.GetAttributes();
 
@@ -214,14 +219,6 @@ SapServer.InstallGenericServerFunctionHandler(
         break;
     }
 });
-```
-
-### RFC Server
-
-```csharp
-string connectionString = "GWHOST=MY_GW_HOST; GWSERV=MY_GW_SERV; PROGRAM_ID=MY_PROGRAM_ID; REG_COUNT=1";
-
-using var server = SapServer.Create(connectionString);
 server.Error += (object sender, SapServerErrorEventArgs args) => Console.WriteLine(args.Error.Message);
 server.StateChange += (object sender, SapServerStateChangeEventArgs args) => Console.WriteLine(args.OldState + " -> " + args.NewState);
 server.Launch();

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using SapNwRfc.Internal.Interop;
 
 namespace SapNwRfc
@@ -12,35 +13,65 @@ namespace SapNwRfc
         private readonly RfcInterop _interop;
         private readonly IntPtr _rfcServerHandle;
         private readonly SapConnectionParameters _parameters;
+        private readonly Action<ISapServerConnection, ISapServerFunction> _action;
 
-        private SapServer(RfcInterop interop, IntPtr rfcServerHandle, SapConnectionParameters parameters)
+        // Keep a reference to the server function delegates so they don't get GCed
+        private readonly RfcInterop.RfcServerSessionChangeListener _serverSessionChangeListener;
+        private readonly RfcInterop.RfcServerErrorListener _serverErrorListener;
+        private readonly RfcInterop.RfcServerStateChangeListener _serverStateChangeListener;
+
+        private SapServer(RfcInterop interop, IntPtr rfcServerHandle, SapConnectionParameters parameters, Action<ISapServerConnection, ISapServerFunction> action)
         {
             _interop = interop;
             _rfcServerHandle = rfcServerHandle;
             _parameters = parameters;
+            _action = action;
+
+            _serverSessionChangeListener = ServerSessionChangeListener;
+            _serverErrorListener = ServerErrorListener;
+            _serverStateChangeListener = ServerStateChangeListener;
+
+            RfcResultCode resultCode = _interop.AddServerSessionChangedListener(
+                rfcHandle: rfcServerHandle,
+                sessionChangeListener: _serverSessionChangeListener,
+                errorInfo: out RfcErrorInfo errorInfo);
+        }
+
+        private void ServerSessionChangeListener(IntPtr serverHandle, in RfcSessionChange sessionChange, in RfcErrorInfo errorInfo)
+        {
+            if (sessionChange.Event == RfcSessionEvent.RFC_SESSION_CREATED)
+            {
+                Servers.TryAdd(sessionChange.SessionId, this);
+            }
+            else if (sessionChange.Event == RfcSessionEvent.RFC_SESSION_DESTROYED)
+            {
+                Servers.TryRemove(sessionChange.SessionId, out _);
+            }
         }
 
         /// <summary>
         /// Creates and connects a new RFC Server.
         /// </summary>
         /// <param name="connectionString">The connection string.</param>
+        /// <param name="action">The RFC server function handler.</param>
         /// <returns>The SAP RFC Server.</returns>
-        public static ISapServer Create(string connectionString)
+        public static ISapServer Create(string connectionString, Action<ISapServerConnection, ISapServerFunction> action)
         {
-            return Create(SapConnectionParameters.Parse(connectionString));
+            return Create(SapConnectionParameters.Parse(connectionString), action);
         }
 
         /// <summary>
         /// Creates and connects a new RFC Server.
         /// </summary>
         /// <param name="parameters">The connection parameters.</param>
+        /// <param name="action">The RFC server function handler.</param>
         /// <returns>The SAP RFC Server.</returns>
-        public static ISapServer Create(SapConnectionParameters parameters)
+        public static ISapServer Create(SapConnectionParameters parameters, Action<ISapServerConnection, ISapServerFunction> action)
         {
-            return Create(new RfcInterop(), parameters);
+            return Create(new RfcInterop(), parameters, action);
         }
 
-        private static ISapServer Create(RfcInterop rfcInterop, SapConnectionParameters parameters)
+        private static ISapServer Create(RfcInterop rfcInterop, SapConnectionParameters parameters, Action<ISapServerConnection, ISapServerFunction> action)
         {
             RfcConnectionParameter[] interopParameters = parameters.ToInterop();
 
@@ -51,7 +82,7 @@ namespace SapNwRfc
 
             errorInfo.ThrowOnError();
 
-            return new SapServer(rfcInterop, rfcServerHandle, parameters);
+            return new SapServer(rfcInterop, rfcServerHandle, parameters, action);
         }
 
         private EventHandler<SapServerErrorEventArgs> _error;
@@ -65,7 +96,7 @@ namespace SapNwRfc
                 {
                     RfcResultCode resultCode = _interop.AddServerErrorListener(
                         rfcHandle: _rfcServerHandle,
-                        errorListener: ServerErrorListener,
+                        errorListener: _serverErrorListener,
                         errorInfo: out RfcErrorInfo errorInfo);
 
                     resultCode.ThrowOnError(errorInfo);
@@ -96,7 +127,7 @@ namespace SapNwRfc
                 {
                     RfcResultCode resultCode = _interop.AddServerStateChangedListener(
                         rfcHandle: _rfcServerHandle,
-                        stateChangeListener: ServerStateChangeListener,
+                        stateChangeListener: _serverStateChangeListener,
                         errorInfo: out RfcErrorInfo errorInfo);
 
                     resultCode.ThrowOnError(errorInfo);
@@ -145,6 +176,14 @@ namespace SapNwRfc
             _interop.DestroyServer(
                 rfcHandle: _rfcServerHandle,
                 errorInfo: out RfcErrorInfo _);
+
+            foreach (KeyValuePair<string, SapServer> kv in Servers)
+            {
+                if (kv.Value == this)
+                {
+                    Servers.TryRemove(kv.Key, out _);
+                }
+            }
         }
 
         /// <summary>
@@ -196,16 +235,6 @@ namespace SapNwRfc
                 return RfcResultCode.RFC_EXTERNAL_FAILURE;
             }
 
-            IntPtr functionDesc = interop.DescribeFunction(
-                rfcHandle: functionHandle,
-                errorInfo: out RfcErrorInfo functionDescErrorInfo);
-
-            if (functionDescErrorInfo.Code != RfcResultCode.RFC_OK)
-            {
-                errorInfo = functionDescErrorInfo;
-                return functionDescErrorInfo.Code;
-            }
-
             RfcResultCode serverContextResultCode = interop.GetServerContext(
                 rfcHandle: connectionHandle,
                 serverContext: out RfcServerContext serverContext,
@@ -233,6 +262,16 @@ namespace SapNwRfc
 
             if (Servers.TryGetValue(serverContext.SessionId, out SapServer sapServer))
             {
+                IntPtr functionDesc = interop.DescribeFunction(
+                    rfcHandle: functionHandle,
+                    errorInfo: out RfcErrorInfo functionDescErrorInfo);
+
+                if (functionDescErrorInfo.Code != RfcResultCode.RFC_OK)
+                {
+                    errorInfo = functionDescErrorInfo;
+                    return functionDescErrorInfo.Code;
+                }
+
                 var connection = new SapServerConnection(interop, connectionHandle);
                 var function = new SapServerFunction(interop, functionHandle, functionDesc);
 
