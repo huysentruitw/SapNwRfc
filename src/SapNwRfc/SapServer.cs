@@ -84,6 +84,37 @@ namespace SapNwRfc
             _error?.Invoke(this, new SapServerErrorEventArgs(new SapAttributes(clientInfo), new SapErrorInfo(errorInfo)));
         }
 
+        private EventHandler<SapServerStateChangeEventArgs> _stateChange;
+
+        /// <inheritdoc cref="ISapServer"/>
+        public event EventHandler<SapServerStateChangeEventArgs> StateChange
+        {
+            add
+            {
+                if (_stateChange == null)
+                {
+                    RfcResultCode resultCode = _interop.AddServerStateChangedListener(
+                        rfcHandle: _rfcServerHandle,
+                        stateChangeListener: ServerStateChangeListener,
+                        errorInfo: out RfcErrorInfo errorInfo);
+
+                    resultCode.ThrowOnError(errorInfo);
+                }
+
+                _stateChange += value;
+            }
+
+            remove
+            {
+                _stateChange -= value;
+            }
+        }
+
+        private void ServerStateChangeListener(IntPtr serverHandle, in RfcStateChange stateChange)
+        {
+            _stateChange?.Invoke(this, new SapServerStateChangeEventArgs(stateChange));
+        }
+
         /// <inheritdoc cref="ISapServer"/>
         public void Launch()
         {
