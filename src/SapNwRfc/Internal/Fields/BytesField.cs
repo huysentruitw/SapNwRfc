@@ -27,20 +27,48 @@ namespace SapNwRfc.Internal.Fields
             resultCode.ThrowOnError(errorInfo);
         }
 
-        public static BytesField Extract(RfcInterop interop, IntPtr dataHandle, string name, int bufferLength)
+        public static BytesField Extract(RfcInterop interop, IntPtr dataHandle, string name, int? bufferLength)
         {
-            var buffer = new byte[bufferLength];
+            uint xstringLength;
+            if (bufferLength == null)
+            {
+                RfcResultCode resultCode = interop.GetXString(
+                    dataHandle: dataHandle,
+                    name: name,
+                    bytesBuffer: Array.Empty<byte>(),
+                    bufferLength: 0,
+                    xstringLength: out xstringLength,
+                    errorInfo: out RfcErrorInfo errorInfo);
 
-            RfcResultCode resultCode = interop.GetBytes(
-                dataHandle: dataHandle,
-                name: name,
-                bytesBuffer: buffer,
-                bufferLength: (uint)buffer.Length,
-                errorInfo: out RfcErrorInfo errorInfo);
+                if (resultCode != RfcResultCode.RFC_BUFFER_TOO_SMALL)
+                {
+                    resultCode.ThrowOnError(errorInfo);
+                }
+            }
+            else
+            {
+                xstringLength = (uint)bufferLength;
+            }
 
-            resultCode.ThrowOnError(errorInfo);
+            if (xstringLength == 0)
+            {
+                return new BytesField(name, Array.Empty<byte>());
+            }
+            else
+            {
+                var buffer = new byte[xstringLength];
+                RfcResultCode resultCode = interop.GetXString(
+                    dataHandle: dataHandle,
+                    name: name,
+                    bytesBuffer: buffer,
+                    bufferLength: (uint)buffer.Length,
+                    xstringLength: out _,
+                    errorInfo: out RfcErrorInfo errorInfo);
 
-            return new BytesField(name, buffer);
+                resultCode.ThrowOnError(errorInfo);
+
+                return new BytesField(name, buffer);
+            }
         }
 
         [ExcludeFromCodeCoverage]
