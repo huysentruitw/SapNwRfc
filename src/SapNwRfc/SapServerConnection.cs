@@ -29,5 +29,47 @@ namespace SapNwRfc
 
             return new SapAttributes(attributes);
         }
+
+        /// <inheritdoc cref="ISapServerConnection"/>
+        public ISapTypeMetadata GetTypeMetadata(string typeName)
+        {
+            IntPtr typeDescriptionHandle = _interop.GetTypeDesc(
+               rfcHandle: _rfcConnectionHandle,
+               typeName: typeName,
+               errorInfo: out RfcErrorInfo errorInfo);
+
+            errorInfo.ThrowOnError();
+
+            return new SapTypeMetadata(_interop, typeDescriptionHandle);
+        }
+
+        /// <inheritdoc cref="ISapServerConnection"/>
+        public ISapFunctionMetadata GetFunctionMetadata(string functionName)
+        {
+            IntPtr functionDescriptionHandle = _interop.GetFunctionDesc(
+               rfcHandle: _rfcConnectionHandle,
+               funcName: functionName,
+               errorInfo: out RfcErrorInfo errorInfo);
+
+            errorInfo.ThrowOnError();
+
+            return new SapFunctionMetadata(_interop, functionDescriptionHandle);
+        }
+
+        /// <inheritdoc cref="ISapServerConnection"/>
+        public ISapFunction CreateFunction(string name)
+        {
+            IntPtr functionDescriptionHandle = _interop.GetFunctionDesc(
+                rfcHandle: _rfcConnectionHandle,
+                funcName: name,
+                errorInfo: out RfcErrorInfo errorInfo);
+
+            errorInfo.ThrowOnError();
+
+            return SapFunction.CreateFromDescriptionHandle(
+                interop: _interop,
+                rfcConnectionHandle: _rfcConnectionHandle,
+                functionDescriptionHandle: functionDescriptionHandle);
+        }
     }
 }

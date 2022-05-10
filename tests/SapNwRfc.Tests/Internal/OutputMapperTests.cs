@@ -217,29 +217,72 @@ namespace SapNwRfc.Tests.Internal
             public decimal DecimalValue { get; set; }
         }
 
-        private delegate void GetBytesCallback(IntPtr dataHandle, string name, byte[] buffer, uint bufferLength, out RfcErrorInfo errorInfo);
+        private delegate void GetXStringCallback(IntPtr dataHandle, string name, byte[] buffer, uint bufferLength, out uint xstringLength, out RfcErrorInfo errorInfo);
 
         [Theory]
+        [InlineData(new byte[] { 1 })]
+        [InlineData(new byte[] { 1, 2 })]
+        [InlineData(new byte[] { 1, 2, 3 })]
+        public void Extract_ByteBufferLengthArray_ShouldMapFromByteArray(byte[] value)
+        {
+            // Arrange
+            uint byteLength = (uint)value.Length;
+            RfcErrorInfo errorInfo;
+            _interopMock
+               .Setup(x => x.GetXString(It.IsAny<IntPtr>(), It.IsAny<string>(), It.IsAny<byte[]>(), It.IsAny<uint>(), out byteLength, out errorInfo))
+               .Callback(new GetXStringCallback((IntPtr dataHandle, string name, byte[] buffer, uint bufferLength, out uint sl, out RfcErrorInfo ei) =>
+               {
+                   ei = default;
+                   sl = byteLength;
+                   Array.Copy(value, buffer, value.Length);
+               }));
+
+            // Act
+            FixedLengthBytesModel result = OutputMapper.Extract<FixedLengthBytesModel>(_interopMock.Object, DataHandle);
+
+            // Assert
+            uint discard;
+            _interopMock.Verify(
+                x => x.GetXString(DataHandle, "BYTESVALUE", It.IsAny<byte[]>(), 3, out discard, out errorInfo),
+                Times.Once);
+            result.Should().NotBeNull();
+            result.BytesValue.Should().StartWith(value);
+        }
+
+        [Theory]
+        [InlineData(new byte[] { 1 })]
+        [InlineData(new byte[] { 1, 2 })]
         [InlineData(new byte[] { 1, 2, 3 })]
         public void Extract_ByteArray_ShouldMapFromByteArray(byte[] value)
         {
             // Arrange
+            uint byteLength = (uint)value.Length;
             RfcErrorInfo errorInfo;
-
+            var resultCodeQueue = new Queue<RfcResultCode>();
+            resultCodeQueue.Enqueue(RfcResultCode.RFC_BUFFER_TOO_SMALL);
+            resultCodeQueue.Enqueue(RfcResultCode.RFC_OK);
             _interopMock
-               .Setup(x => x.GetBytes(It.IsAny<IntPtr>(), It.IsAny<string>(), It.IsAny<byte[]>(), It.IsAny<uint>(), out errorInfo))
-               .Callback(new GetBytesCallback((IntPtr dataHandle, string name, byte[] buffer, uint bufferLength, out RfcErrorInfo ei) =>
-               {
-                   Array.Copy(value, buffer, value.Length);
-                   ei = default;
-               }));
+                .Setup(x => x.GetXString(It.IsAny<IntPtr>(), It.IsAny<string>(), It.IsAny<byte[]>(), It.IsAny<uint>(), out byteLength, out errorInfo))
+                .Callback(new GetXStringCallback((IntPtr dataHandle, string name, byte[] buffer, uint bufferLength, out uint sl, out RfcErrorInfo ei) =>
+                {
+                    ei = default;
+                    sl = byteLength;
+                    if (buffer.Length <= 0 || bufferLength <= 0)
+                        return;
+                    Array.Copy(value, buffer, value.Length);
+                }))
+                .Returns(resultCodeQueue.Dequeue);
 
             // Act
             BytesModel result = OutputMapper.Extract<BytesModel>(_interopMock.Object, DataHandle);
 
             // Assert
+            uint discard;
             _interopMock.Verify(
-                x => x.GetBytes(DataHandle, "BYTESVALUE", It.IsAny<byte[]>(), 3, out errorInfo),
+                x => x.GetXString(DataHandle, "BYTESVALUE", Array.Empty<byte>(), 0, out discard, out errorInfo),
+                Times.Once);
+            _interopMock.Verify(
+                x => x.GetXString(DataHandle, "BYTESVALUE", It.IsAny<byte[]>(), byteLength, out discard, out errorInfo),
                 Times.Once);
             result.Should().NotBeNull();
             result.BytesValue.Should().BeEquivalentTo(value);
@@ -249,28 +292,29 @@ namespace SapNwRfc.Tests.Internal
         public void Extract_EmptyByteArray_ShouldMapAsEmptyByteArray()
         {
             // Arrange
+            uint byteLength = 0;
             RfcErrorInfo errorInfo;
-            uint bufferLength = 0;
-            _interopMock.Setup(x => x.GetBytes(It.IsAny<IntPtr>(), It.IsAny<string>(), It.IsAny<byte[]>(), bufferLength, out errorInfo));
+            _interopMock.Setup(x => x.GetXString(It.IsAny<IntPtr>(), It.IsAny<string>(), It.IsAny<byte[]>(), byteLength, out byteLength, out errorInfo));
 
             // Act
-            EmptyBytesModel result = OutputMapper.Extract<EmptyBytesModel>(_interopMock.Object, DataHandle);
+            BytesModel result = OutputMapper.Extract<BytesModel>(_interopMock.Object, DataHandle);
 
             // Assert
+            uint discard;
             _interopMock.Verify(
-                x => x.GetBytes(DataHandle, "BYTESVALUE", Array.Empty<byte>(), 0, out errorInfo),
-                Times.Never);
+                x => x.GetXString(DataHandle, "BYTESVALUE", Array.Empty<byte>(), byteLength, out discard, out errorInfo),
+                Times.Once);
             result.Should().NotBeNull();
             result.BytesValue.Should().BeEmpty();
         }
 
-        private sealed class BytesModel
+        private sealed class FixedLengthBytesModel
         {
             [SapBufferLength(3)]
             public byte[] BytesValue { get; set; }
         }
 
-        private sealed class EmptyBytesModel
+        private sealed class BytesModel
         {
             public byte[] BytesValue { get; set; }
         }
