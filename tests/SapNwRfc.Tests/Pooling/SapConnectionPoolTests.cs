@@ -3,7 +3,9 @@ using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using FluentAssertions;
+using FluentAssertions.Extensions;
 using Moq;
+using SapNwRfc.Exceptions;
 using SapNwRfc.Pooling;
 using Xunit;
 
@@ -97,25 +99,43 @@ namespace SapNwRfc.Tests.Pooling
         }
 
         [Fact]
-        public void GetConnection_ConnectionFactoryReturnsNullFirst_ShouldRetryUntilFactoryReturnsConnection()
+        public void GetConnection_ConnectionFactoryReturnsNull_ShouldThrowInvalidOperationException()
+        {
+            // Arrange
+            var pool = new SapConnectionPool(
+                ConnectionParameters,
+                poolSize: 1,
+                connectionFactory: _ => null);
+
+            // Act
+            Action action = () => pool.GetConnection();
+
+            // Assert
+            action.Should().Throw<InvalidOperationException>();
+        }
+
+        [Fact]
+        public void GetConnection_CalledTwice_ConnectionFactoryReturnsNullFirst_ShouldNotCausePoolStarvation()
         {
             // Arrange
             ISapConnection firstConnection = null;
             ISapConnection secondConnection = Mock.Of<ISapConnection>();
             var connectionFactoryMock = new Mock<Func<SapConnectionParameters, ISapConnection>>();
-            connectionFactoryMock.SetupSequence(x => x(It.IsAny<SapConnectionParameters>())).Returns(firstConnection);
-            connectionFactoryMock.SetupSequence(x => x(It.IsAny<SapConnectionParameters>())).Returns(secondConnection);
-
+            connectionFactoryMock
+                .SetupSequence(x => x(It.IsAny<SapConnectionParameters>()))
+                .Returns(firstConnection)
+                .Returns(secondConnection);
             var pool = new SapConnectionPool(
                 ConnectionParameters,
                 poolSize: 1,
                 connectionFactory: connectionFactoryMock.Object);
 
             // Act
-            ISapConnection connection = pool.GetConnection();
+            try { pool.GetConnection(); } catch { }
+            Action action = () => pool.GetConnection();
 
             // Assert
-            connection.Should().Be(secondConnection);
+            action.ExecutionTime().Should().BeLessThan(100.Milliseconds());
         }
 
         [Fact]
