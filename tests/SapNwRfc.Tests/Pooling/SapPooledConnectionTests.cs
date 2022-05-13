@@ -109,24 +109,6 @@ namespace SapNwRfc.Tests.Pooling
             _connectionPoolMock.Verify(x => x.ForgetConnection(It.IsAny<ISapConnection>()), Times.Never());
         }
 
-        [Fact]
-        public void InvokeFunction_CommunicationFailureDuringConnect_ShouldThrowException()
-        {
-            // Arrange
-            var exception = new SapCommunicationFailedException(default);
-            _connectionPoolMock
-                .SetupSequence(x => x.GetConnection(It.IsAny<CancellationToken>()))
-                .Throws(exception);
-            var connection = new SapPooledConnection(_connectionPoolMock.Object);
-
-            // Act
-            Action action = () => connection.InvokeFunction("SomeFunction");
-
-            // Assert
-            action.Should().Throw<SapCommunicationFailedException>()
-                .Which.Should().Be(exception);
-        }
-
         [Theory]
         [InlineData(InvokeFlavor.NoInputNoOutput)]
         [InlineData(InvokeFlavor.InputOnly)]
@@ -184,6 +166,30 @@ namespace SapNwRfc.Tests.Pooling
             _connectionPoolMock.Verify(x => x.ForgetConnection(_rfcConnectionMock.Object), Times.Once());
             _connectionPoolMock.Verify(x => x.GetConnection(It.IsAny<CancellationToken>()), Times.Exactly(2));
             VerifyActions[invokeFlavor](_rfcFunctionMock, Times.Exactly(2));
+        }
+
+        [Theory]
+        [InlineData(InvokeFlavor.NoInputNoOutput)]
+        [InlineData(InvokeFlavor.InputOnly)]
+        [InlineData(InvokeFlavor.OutputOnly)]
+        [InlineData(InvokeFlavor.InputOutput)]
+        public void InvokeFunction_CommunicationFailureDuringGetConnection_ShouldThrowSapCommunicationFailedException_ShouldNotCallForgetConnection(InvokeFlavor invokeFlavor)
+        {
+            // Arrange
+            var connection = new SapPooledConnection(_connectionPoolMock.Object);
+            _connectionPoolMock
+                .SetupSequence(x => x.GetConnection(It.IsAny<CancellationToken>()))
+                .Throws(new SapCommunicationFailedException(default))
+                .Returns(_rfcConnectionMock.Object);
+
+            // Act
+            Action action = () => InvokeActions[invokeFlavor](connection);
+
+            // Assert
+            action.Should().Throw<SapCommunicationFailedException>();
+            _connectionPoolMock.Verify(x => x.GetConnection(It.IsAny<CancellationToken>()), Times.Once());
+            _connectionPoolMock.Verify(x => x.ForgetConnection(It.IsAny<ISapConnection>()), Times.Never());
+            VerifyActions[invokeFlavor](_rfcFunctionMock, Times.Never());
         }
 
         private sealed class OutputModel

@@ -107,14 +107,24 @@ namespace SapNwRfc.Pooling
                     {
                         if (_openConnectionCount < _poolSize)
                         {
+                            connection = _connectionFactory(_connectionParameters)
+                                ?? throw new InvalidOperationException("The connection factory should never return null");
                             _openConnectionCount++;
-                            connection = _connectionFactory(_connectionParameters);
                         }
                     }
 
                     if (connection != null)
                     {
-                        connection.Connect();
+                        try
+                        {
+                            connection.Connect();
+                        }
+                        catch
+                        {
+                            ForgetConnection(connection);
+                            throw;
+                        }
+
                         return connection;
                     }
                 }
