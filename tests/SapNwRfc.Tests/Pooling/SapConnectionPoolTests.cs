@@ -139,6 +139,24 @@ namespace SapNwRfc.Tests.Pooling
         }
 
         [Fact]
+        public void GetConnection_FailsToConnect_ShouldLetThroughException()
+        {
+            // Arrange
+            var failingConnectionMock = new Mock<ISapConnection>();
+            failingConnectionMock.Setup(x => x.Connect()).Throws(new SapCommunicationFailedException(default));
+            var pool = new SapConnectionPool(
+                ConnectionParameters,
+                poolSize: 1,
+                connectionFactory: _ => failingConnectionMock.Object);
+
+            // Act
+            Action action = () => pool.GetConnection();
+
+            // Assert
+            action.Should().Throw<SapCommunicationFailedException>();
+        }
+
+        [Fact]
         public void ReturnConnection_ExceedPoolSize_GetConnectionShouldBlockAndReturnPreviousConnection()
         {
             // Arrange
