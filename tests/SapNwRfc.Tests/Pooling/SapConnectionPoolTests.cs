@@ -157,6 +157,32 @@ namespace SapNwRfc.Tests.Pooling
         }
 
         [Fact]
+        public void GetConnection_CallMultipleTypes_FailsToConnect_ShouldNotCausePoolStarvation()
+        {
+            // Arrange
+            var failingConnectionMock = new Mock<ISapConnection>();
+            failingConnectionMock.Setup(x => x.Connect()).Throws(new SapCommunicationFailedException(default));
+            var pool = new SapConnectionPool(
+                ConnectionParameters,
+                poolSize: 3,
+                connectionFactory: _ => failingConnectionMock.Object);
+
+            // Act
+            Action action = () =>
+            {
+                try { pool.GetConnection(); } catch { }
+                try { pool.GetConnection(); } catch { }
+                try { pool.GetConnection(); } catch { }
+                try { pool.GetConnection(); } catch { }
+                try { pool.GetConnection(); } catch { }
+                try { pool.GetConnection(); } catch { }
+            };
+
+            // Assert
+            action.ExecutionTime().Should().BeLessThan(500.Milliseconds());
+        }
+
+        [Fact]
         public void ReturnConnection_ExceedPoolSize_GetConnectionShouldBlockAndReturnPreviousConnection()
         {
             // Arrange

@@ -115,7 +115,16 @@ namespace SapNwRfc.Pooling
 
                     if (connection != null)
                     {
-                        connection.Connect();
+                        try
+                        {
+                            connection.Connect();
+                        }
+                        catch
+                        {
+                            lock (_syncRoot) _openConnectionCount--;
+                            throw;
+                        }
+
                         return connection;
                     }
                 }
