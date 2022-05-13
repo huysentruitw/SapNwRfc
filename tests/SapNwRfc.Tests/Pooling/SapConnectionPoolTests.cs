@@ -183,6 +183,34 @@ namespace SapNwRfc.Tests.Pooling
         }
 
         [Fact]
+        public void GetConnection_CalledTwice_ConnectTakesSomeTimeButFails_ShouldReleaseBlockingSecondGetConnectionCall()
+        {
+            // Arrange
+            var firstConnectionMock = new Mock<ISapConnection>();
+            firstConnectionMock.Setup(x => x.Connect())
+                .Callback(() => Thread.Sleep(250))
+                .Throws(new SapCommunicationFailedException(default));
+            ISapConnection secondConnection = Mock.Of<ISapConnection>();
+            var connectionFactoryMock = new Mock<Func<SapConnectionParameters, ISapConnection>>();
+            connectionFactoryMock
+                .SetupSequence(x => x(It.IsAny<SapConnectionParameters>()))
+                .Returns(firstConnectionMock.Object)
+                .Returns(secondConnection);
+            var pool = new SapConnectionPool(
+                ConnectionParameters,
+                poolSize: 1,
+                connectionFactory: connectionFactoryMock.Object);
+
+            // Act
+            Task.Run(() => pool.GetConnection());
+            Thread.Sleep(100); // Wait a bit so the code in Task.Run picks the first connection
+            Action action = () => pool.GetConnection();
+
+            // Assert
+            action.ExecutionTime().Should().BeLessThan(500.Milliseconds());
+        }
+
+        [Fact]
         public void ReturnConnection_ExceedPoolSize_GetConnectionShouldBlockAndReturnPreviousConnection()
         {
             // Arrange

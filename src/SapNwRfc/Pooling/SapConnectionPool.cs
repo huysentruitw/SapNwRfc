@@ -121,7 +121,7 @@ namespace SapNwRfc.Pooling
                         }
                         catch
                         {
-                            lock (_syncRoot) _openConnectionCount--;
+                            ForgetConnection(connection);
                             throw;
                         }
 
