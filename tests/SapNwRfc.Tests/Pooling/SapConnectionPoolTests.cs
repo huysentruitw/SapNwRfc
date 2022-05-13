@@ -1,9 +1,9 @@
 ﻿using System;
-using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using FluentAssertions;
 using FluentAssertions.Extensions;
+using FluentAssertions.Specialized;
 using Moq;
 using SapNwRfc.Exceptions;
 using SapNwRfc.Pooling;
@@ -166,6 +166,7 @@ namespace SapNwRfc.Tests.Pooling
                 connectionFactory: _ => Mock.Of<ISapConnection>());
 
             ISapConnection connection1 = pool.GetConnection();
+            ISapConnection connection2 = null;
 
             // Act
             Task.Run(async () =>
@@ -173,19 +174,14 @@ namespace SapNwRfc.Tests.Pooling
                 await Task.Delay(150);
                 pool.ReturnConnection(connection1);
             });
-            var sw = new Stopwatch();
-            sw.Start();
-            ISapConnection connection2 = pool.GetConnection();
-            sw.Stop();
+            Action action = () => connection2 = pool.GetConnection();
 
             // Assert
-            sw.ElapsedMilliseconds.Should().BeGreaterThan(100);
+            ExecutionTime executionTime = action.ExecutionTime();
+            executionTime.Should().BeLessThan(500.Milliseconds());
+            executionTime.Should().BeGreaterThan(100.Milliseconds());
             connection2.Should().NotBeNull();
             connection2.Should().Be(connection1);
-
-            connection1.Dispose();
-            connection2.Dispose();
-            pool.Dispose();
         }
 
         [Fact]
@@ -199,6 +195,7 @@ namespace SapNwRfc.Tests.Pooling
 
             ISapConnection connection1 = pool.GetConnection();
             ISapConnection connection2 = pool.GetConnection();
+            ISapConnection connection3 = null;
 
             // Act
             Task.Run(async () =>
@@ -208,20 +205,14 @@ namespace SapNwRfc.Tests.Pooling
                 await Task.Delay(150);
                 pool.ReturnConnection(connection2);
             });
-            var sw = new Stopwatch();
-            sw.Start();
-            ISapConnection connection3 = pool.GetConnection();
-            sw.Stop();
+            Action action = () => connection3 = pool.GetConnection();
 
             // Assert
-            sw.ElapsedMilliseconds.Should().BeGreaterThan(100).And.BeLessThan(275);
+            ExecutionTime executionTime = action.ExecutionTime();
+            executionTime.Should().BeLessThan(275.Milliseconds());
+            executionTime.Should().BeGreaterThan(100.Milliseconds());
             connection3.Should().NotBeNull();
             connection3.Should().Be(connection1);
-
-            connection1.Dispose();
-            connection2.Dispose();
-            connection3.Dispose();
-            pool.Dispose();
         }
 
         [Fact]
@@ -234,6 +225,7 @@ namespace SapNwRfc.Tests.Pooling
                 connectionFactory: _ => Mock.Of<ISapConnection>());
 
             ISapConnection connection1 = pool.GetConnection();
+            ISapConnection connection2 = null;
 
             // Act
             Task.Run(async () =>
@@ -241,13 +233,12 @@ namespace SapNwRfc.Tests.Pooling
                 await Task.Delay(150);
                 pool.ForgetConnection(connection1);
             });
-            var sw = new Stopwatch();
-            sw.Start();
-            ISapConnection connection2 = pool.GetConnection();
-            sw.Stop();
+            Action action = () => connection2 = pool.GetConnection();
 
             // Assert
-            sw.ElapsedMilliseconds.Should().BeGreaterThan(100);
+            ExecutionTime executionTime = action.ExecutionTime();
+            executionTime.Should().BeLessThan(500.Milliseconds());
+            executionTime.Should().BeGreaterThan(100.Milliseconds());
             connection2.Should().NotBeNull();
             connection2.Should().NotBe(connection1);
         }
