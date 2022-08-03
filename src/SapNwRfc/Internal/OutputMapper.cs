@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -120,7 +121,16 @@ namespace SapNwRfc.Internal
             else if (propertyInfo.PropertyType.IsArray)
             {
                 Type elementType = propertyInfo.PropertyType.GetElementType();
+
                 extractMethod = GetMethodInfo(() => TableField<object>.Extract<object>(default, default, default))
+                    .GetGenericMethodDefinition()
+                    .MakeGenericMethod(elementType);
+            }
+            else if (propertyInfo.PropertyType.GetInterfaces().Contains(typeof(IEnumerable)))
+            {
+                Type elementType = propertyInfo.PropertyType.GetGenericArguments()[0];
+
+                extractMethod = GetMethodInfo(() => EnumerableField<object>.Extract<object>(default, default, default))
                     .GetGenericMethodDefinition()
                     .MakeGenericMethod(elementType);
             }

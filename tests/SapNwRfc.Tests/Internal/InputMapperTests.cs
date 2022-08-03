@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using AutoFixture;
 using FluentAssertions;
@@ -332,6 +333,62 @@ namespace SapNwRfc.Tests.Internal
         }
 
         [Fact]
+        public void Apply_Enumerable_ShouldMapAsTable()
+        {
+            // Arrange
+            RfcErrorInfo errorInfo;
+            var model = new EnumerableModel { SomeEnumerable = Fixture.CreateMany<EnumerableElement>(2) };
+
+            // Act
+            InputMapper.Apply(_interopMock.Object, DataHandle, model);
+
+            // Assert
+            IntPtr tableHandle;
+            _interopMock.Verify(x => x.GetTable(DataHandle, "SOMEENUMERABLE", out tableHandle, out errorInfo), Times.Once);
+        }
+
+        [Fact]
+        public void Apply_Enumerable_ShouldMapRowsAndValues()
+        {
+            // Arrange
+            const int numberOfRows = 5;
+            var tableHandle = (IntPtr)1235;
+            var lineHandle = (IntPtr)2245;
+            RfcErrorInfo errorInfo;
+            _interopMock.Setup(x => x.GetTable(DataHandle, "SOMEENUMERABLE", out tableHandle, out errorInfo));
+            _interopMock.Setup(x => x.AppendNewRow(It.IsAny<IntPtr>(), out errorInfo)).Returns(lineHandle);
+            var model = new EnumerableModel { SomeEnumerable = Fixture.CreateMany<EnumerableElement>(numberOfRows) };
+
+            // Act
+            InputMapper.Apply(_interopMock.Object, DataHandle, model);
+
+            // Assert
+            _interopMock.Verify(x => x.AppendNewRow(tableHandle, out errorInfo), Times.Exactly(numberOfRows));
+            foreach (EnumerableElement element in model.SomeEnumerable)
+            {
+                var length = (uint)element.Value.Length;
+                _interopMock.Verify(
+                    x => x.SetString(lineHandle, "VALUE", element.Value, length, out errorInfo),
+                    Times.Once);
+            }
+        }
+
+        [Fact]
+        public void Apply_NullEnumerable_ShouldNotMapAsTable()
+        {
+            // Arrange
+            RfcErrorInfo errorInfo;
+            var model = new EnumerableModel();
+
+            // Act
+            InputMapper.Apply(_interopMock.Object, DataHandle, model);
+
+            // Assert
+            IntPtr tableHandle;
+            _interopMock.Verify(x => x.GetTable(DataHandle, It.IsAny<string>(), out tableHandle, out errorInfo), Times.Never);
+        }
+
+        [Fact]
         public void Apply_Structure_ShouldMapAsStructure()
         {
             // Arrange
@@ -410,6 +467,16 @@ namespace SapNwRfc.Tests.Internal
         private sealed class ArrayElement
         {
             public string Value { get; set; } = "123";
+        }
+
+        private sealed class EnumerableModel
+        {
+            public IEnumerable<EnumerableElement> SomeEnumerable { get; set; }
+        }
+
+        private sealed class EnumerableElement
+        {
+            public string Value { get; set; } = "234";
         }
 
         private sealed class StructureModel

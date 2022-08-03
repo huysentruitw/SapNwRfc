@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Concurrent;
 using System.Linq;
 using System.Linq.Expressions;
@@ -127,6 +128,13 @@ namespace SapNwRfc.Internal
             {
                 // new RfcTableField<TElementType>(name, (TElementType[])value);
                 Type tableFieldType = typeof(TableField<>).MakeGenericType(propertyInfo.PropertyType.GetElementType());
+                fieldConstructor = tableFieldType.GetConstructor(new[] { typeof(string), propertyInfo.PropertyType });
+            }
+            else if (propertyInfo.PropertyType.GetInterfaces().Contains(typeof(IEnumerable)))
+            {
+                Type elementType = propertyInfo.PropertyType.GetGenericArguments()[0];
+
+                Type tableFieldType = typeof(EnumerableField<>).MakeGenericType(elementType);
                 fieldConstructor = tableFieldType.GetConstructor(new[] { typeof(string), propertyInfo.PropertyType });
             }
             else if (!propertyInfo.PropertyType.IsPrimitive)

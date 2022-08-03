@@ -677,6 +677,107 @@ namespace SapNwRfc.Tests.Internal
         }
 
         [Fact]
+        public void Extract_TableWithRows_ShouldMapToEnumerableOfElements()
+        {
+            // Arrange
+            var tableHandle = (IntPtr)3334;
+            var rowHandle = (IntPtr)4445;
+            uint rowCount = 3;
+            int intValue = 888;
+            RfcErrorInfo errorInfo;
+            _interopMock.Setup(x => x.GetTable(It.IsAny<IntPtr>(), It.IsAny<string>(), out tableHandle, out errorInfo));
+            _interopMock.Setup(x => x.GetRowCount(It.IsAny<IntPtr>(), out rowCount, out errorInfo));
+            _interopMock.Setup(x => x.MoveToFirstRow(It.IsAny<IntPtr>(), out errorInfo));
+            _interopMock.Setup(x => x.GetCurrentRow(It.IsAny<IntPtr>(), out errorInfo)).Returns(rowHandle);
+            _interopMock.Setup(x => x.GetInt(It.IsAny<IntPtr>(), It.IsAny<string>(), out intValue, out errorInfo));
+
+            // Act
+            EnumerableModel result = OutputMapper.Extract<EnumerableModel>(_interopMock.Object, DataHandle);
+
+            // access all elements at least once to complete yield
+            var enumerator = result.Elements.GetEnumerator();
+
+            // first moveNext starts the yield and counts as MoveToFirstRow
+            // subsequent as MoveToNextRow
+            enumerator.MoveNext();
+            enumerator.MoveNext();
+            enumerator.MoveNext();
+
+            // Assert
+            _interopMock.Verify(
+                x => x.GetTable(DataHandle, "ELEMENTS", out tableHandle, out errorInfo),
+                Times.Once);
+            _interopMock.Verify(
+                x => x.GetRowCount(tableHandle, out rowCount, out errorInfo),
+                Times.Once);
+            _interopMock.Verify(
+                x => x.MoveToFirstRow(tableHandle, out errorInfo),
+                Times.Once);
+            _interopMock.Verify(
+                x => x.GetCurrentRow(tableHandle, out errorInfo),
+                Times.Exactly(3));
+            _interopMock.Verify(
+                x => x.GetInt(rowHandle, "VALUE", out intValue, out errorInfo),
+                Times.Exactly(3));
+            _interopMock.Verify(
+                x => x.MoveToNextRow(tableHandle, out errorInfo),
+                Times.Exactly(2));
+
+            result.Should().NotBeNull();
+            result.Elements.First().Value.Should().Be(888);
+        }
+
+        [Fact]
+        public void Extract_TableWithRows_ShouldNotYieldEnumerableElementsIfNotAccessed()
+        {
+            // Arrange
+            var tableHandle = (IntPtr)3334;
+            var rowHandle = (IntPtr)4445;
+            uint rowCount = 3;
+            int intValue = 888;
+            RfcErrorInfo errorInfo;
+            _interopMock.Setup(x => x.GetTable(It.IsAny<IntPtr>(), It.IsAny<string>(), out tableHandle, out errorInfo));
+            _interopMock.Setup(x => x.GetRowCount(It.IsAny<IntPtr>(), out rowCount, out errorInfo));
+            _interopMock.Setup(x => x.MoveToFirstRow(It.IsAny<IntPtr>(), out errorInfo));
+            _interopMock.Setup(x => x.GetCurrentRow(It.IsAny<IntPtr>(), out errorInfo)).Returns(rowHandle);
+            _interopMock.Setup(x => x.GetInt(It.IsAny<IntPtr>(), It.IsAny<string>(), out intValue, out errorInfo));
+
+            // Act
+            EnumerableModel result = OutputMapper.Extract<EnumerableModel>(_interopMock.Object, DataHandle);
+
+            // Assert
+            _interopMock.Verify(
+                x => x.GetTable(DataHandle, "ELEMENTS", out tableHandle, out errorInfo),
+                Times.Once);
+            _interopMock.Verify(
+                x => x.GetRowCount(tableHandle, out rowCount, out errorInfo),
+                Times.Once);
+            _interopMock.Verify(
+                x => x.MoveToFirstRow(tableHandle, out errorInfo),
+                Times.Never);
+            _interopMock.Verify(
+                x => x.GetCurrentRow(tableHandle, out errorInfo),
+                Times.Never);
+            _interopMock.Verify(
+                x => x.GetInt(rowHandle, "VALUE", out intValue, out errorInfo),
+                Times.Never);
+            _interopMock.Verify(x => x.MoveToNextRow(tableHandle, out errorInfo), Times.Never);
+
+            result.Should().NotBeNull();
+            result.Elements.Should().NotBeNull();
+        }
+
+        private sealed class EnumerableModel
+        {
+            public IEnumerable<EnumerableElement> Elements { get; set; }
+        }
+
+        private sealed class EnumerableElement
+        {
+            public int Value { get; set; }
+        }
+
+        [Fact]
         public void Extract_Structure_ShouldMapToNestedObject()
         {
             // Arrange
