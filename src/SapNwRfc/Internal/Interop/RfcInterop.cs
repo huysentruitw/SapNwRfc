@@ -329,7 +329,7 @@ namespace SapNwRfc.Internal.Interop
         public delegate RfcResultCode RfcServerFunction(IntPtr connectionHandle, IntPtr functionHandle, out RfcErrorInfo errorInfo);
 
         [UnmanagedFunctionPointer(CallingConvention.StdCall, CharSet = CharSet.Unicode)]
-        public delegate RfcResultCode RfcFunctionDescriptionCallback(string functionName, RfcAttributes attributes, ref IntPtr funcDescHandle);
+        public delegate RfcResultCode RfcFunctionDescriptionCallback(string functionName, RfcAttributes attributes, out IntPtr funcDescHandle);
 
         [UnmanagedFunctionPointer(CallingConvention.StdCall)]
         public delegate void RfcServerErrorListener(IntPtr serverHandle, in RfcAttributes clientInfo, in RfcErrorInfo errorInfo);
