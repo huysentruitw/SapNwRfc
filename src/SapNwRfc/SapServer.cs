@@ -148,6 +148,19 @@ namespace SapNwRfc
         }
 
         /// <inheritdoc cref="ISapServer"/>
+        public SapServerAttributes GetAttributes()
+        {
+            RfcResultCode resultCode = _interop.GetServerAttributes(
+                rfcHandle: _rfcServerHandle,
+                serverAttributes: out RfcServerAttributes serverAttributes,
+                errorInfo: out RfcErrorInfo errorInfo);
+
+            resultCode.ThrowOnError(errorInfo);
+
+            return new SapServerAttributes(serverAttributes);
+        }
+
+        /// <inheritdoc cref="ISapServer"/>
         public void Launch()
         {
             RfcResultCode resultCode = _interop.LaunchServer(

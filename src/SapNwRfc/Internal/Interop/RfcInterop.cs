@@ -371,6 +371,12 @@ namespace SapNwRfc.Internal.Interop
             => RfcShutdownServer(rfcHandle, timeout, out errorInfo);
 
         [DllImport(SapNwRfcDllName)]
+        private static extern RfcResultCode RfcGetServerAttributes(IntPtr rfcHandle, out RfcServerAttributes serverAttributes, out RfcErrorInfo errorInfo);
+
+        public virtual RfcResultCode GetServerAttributes(IntPtr rfcHandle, out RfcServerAttributes serverAttributes, out RfcErrorInfo errorInfo)
+            => RfcGetServerAttributes(rfcHandle, out serverAttributes, out errorInfo);
+
+        [DllImport(SapNwRfcDllName)]
         private static extern RfcResultCode RfcGetServerContext(IntPtr rfcHandle, out RfcServerContext serverContext, out RfcErrorInfo errorInfo);
 
         public virtual RfcResultCode GetServerContext(IntPtr rfcHandle, out RfcServerContext serverContext, out RfcErrorInfo errorInfo)
