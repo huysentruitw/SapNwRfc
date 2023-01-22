@@ -205,7 +205,7 @@ SapServer.InstallGenericServerFunctionHandler((string functionName, SapAttribute
 ### RFC Server
 
 ```csharp
-string connectionString = "GWHOST=MY_GW_HOST; GWSERV=MY_GW_SERV; PROGRAM_ID=MY_PROGRAM_ID; REG_COUNT=1";
+string connectionString = "GatewayHost=MY_GW_HOST; GatewayService=MY_GW_SERV; ProgramId=MY_PROGRAM_ID; RegistrationCount=1";
 
 using var server = SapServer.Create(connectionString, (ISapServerConnection connection, ISapServerFunction function) =>
 {
