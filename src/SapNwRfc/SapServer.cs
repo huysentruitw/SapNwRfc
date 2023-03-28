@@ -166,20 +166,44 @@ namespace SapNwRfc
             InstallGenericServerFunctionHandler(new RfcInterop(), parameters, action);
         }
 
+        // Keep a reference to the generic server function delegates so they don't get GCed
+        private static readonly RfcInterop.RfcServerFunction ServerFunction = HandleGenericFunction;
+        private static readonly RfcInterop.RfcFunctionDescriptionCallback GenericMetadata = HandleGenericMetadata;
+
+#pragma warning disable SA1306 // Field names should begin with lower-case letter
+        private static bool GenericServerFunctionHandlerInstalled;
+        private static (RfcInterop Interop, SapConnectionParameters Parameters, Action<ISapServerConnection, ISapServerFunction> Action) GenericServerFunctionHandler;
+#pragma warning restore SA1306 // Field names should begin with lower-case letter
+
         private static void InstallGenericServerFunctionHandler(RfcInterop interop, SapConnectionParameters parameters, Action<ISapServerConnection, ISapServerFunction> action)
         {
-            RfcResultCode resultCode = interop.InstallGenericServerFunction(
-                serverFunction: (IntPtr connectionHandle, IntPtr functionHandle, out RfcErrorInfo errorInfo)
-                                    => HandleGenericFunction(interop, action, connectionHandle, functionHandle, out errorInfo),
-                funcDescPointer: (string functionName, RfcAttributes attributes, ref IntPtr funcDescHandle)
-                                    => HandleGenericMetadata(interop, parameters, functionName, out funcDescHandle),
-                out RfcErrorInfo installFunctionErrorInfo);
+            GenericServerFunctionHandler = (interop, parameters, action);
 
-            resultCode.ThrowOnError(installFunctionErrorInfo);
+            if (!GenericServerFunctionHandlerInstalled)
+            {
+                RfcResultCode resultCode = interop.InstallGenericServerFunction(
+                    serverFunction: ServerFunction,
+                    funcDescPointer: GenericMetadata,
+                    out RfcErrorInfo installFunctionErrorInfo);
+
+                resultCode.ThrowOnError(installFunctionErrorInfo);
+
+                GenericServerFunctionHandlerInstalled = true;
+            }
         }
 
-        private static RfcResultCode HandleGenericFunction(RfcInterop interop, Action<ISapServerConnection, ISapServerFunction> action, IntPtr connectionHandle, IntPtr functionHandle, out RfcErrorInfo errorInfo)
+        private static RfcResultCode HandleGenericFunction(IntPtr connectionHandle, IntPtr functionHandle, out RfcErrorInfo errorInfo)
         {
+            (RfcInterop interop, _, Action<ISapServerConnection, ISapServerFunction> action) = GenericServerFunctionHandler;
+            if (interop == null || action == null)
+            {
+                errorInfo = new RfcErrorInfo
+                {
+                    Code = RfcResultCode.RFC_EXTERNAL_FAILURE,
+                };
+                return RfcResultCode.RFC_EXTERNAL_FAILURE;
+            }
+
             IntPtr functionDesc = interop.DescribeFunction(
                 rfcHandle: functionHandle,
                 errorInfo: out RfcErrorInfo functionDescErrorInfo);
@@ -211,8 +235,14 @@ namespace SapNwRfc
             }
         }
 
-        private static RfcResultCode HandleGenericMetadata(RfcInterop interop, SapConnectionParameters parameters, string functionName, out IntPtr funcDescHandle)
+        private static RfcResultCode HandleGenericMetadata(string functionName, RfcAttributes attributes, out IntPtr funcDescHandle)
         {
+            funcDescHandle = IntPtr.Zero;
+
+            (RfcInterop interop, SapConnectionParameters parameters, _) = GenericServerFunctionHandler;
+            if (interop == null || parameters == null)
+                return RfcResultCode.RFC_NOT_FOUND;
+
             RfcConnectionParameter[] interopParameters = parameters.ToInterop();
 
             IntPtr connection = interop.OpenConnection(
@@ -222,7 +252,6 @@ namespace SapNwRfc
 
             if (connectionErrorInfo.Code != RfcResultCode.RFC_OK)
             {
-                funcDescHandle = IntPtr.Zero;
                 return connectionErrorInfo.Code;
             }
 
