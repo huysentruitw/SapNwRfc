@@ -1,11 +1,11 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFrameworks>net472;net5</TargetFrameworks>
     <IsPackable>false</IsPackable>
     <CodeAnalysisRuleSet>..\..\ca.ruleset</CodeAnalysisRuleSet>
     <SignAssembly>true</SignAssembly>
-	  <DelaySign>false</DelaySign>
+    <DelaySign>false</DelaySign>
     <AssemblyOriginatorKeyFile>..\..\Signing.snk</AssemblyOriginatorKeyFile>
   </PropertyGroup>
 
@@ -32,6 +32,10 @@
     </PackageReference>
   </ItemGroup>
 
+  <ItemGroup Condition="'$(TargetFramework)' == 'net472'">
+    <Reference Include="Microsoft.CSharp" />
+  </ItemGroup>
+  
   <ItemGroup>
     <ProjectReference Include="..\..\src\SapNwRfc\SapNwRfc.csproj" />
   </ItemGroup>

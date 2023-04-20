@@ -1,5 +1,6 @@
 using System;
 using SapNwRfc.Internal;
+using SapNwRfc.Internal.Dynamic;
 using SapNwRfc.Internal.Interop;
 
 namespace SapNwRfc
@@ -55,6 +56,11 @@ namespace SapNwRfc
         /// <inheritdoc cref="ISapServerFunction"/>
         public TOutput GetParameters<TOutput>()
         {
+            if (typeof(TOutput) == typeof(object))
+            {
+                return (TOutput)(object)new DynamicRfcFunction(_interop, _functionHandle, Metadata);
+            }
+
             return OutputMapper.Extract<TOutput>(_interop, _functionHandle);
         }
 
