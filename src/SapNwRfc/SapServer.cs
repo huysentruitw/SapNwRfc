@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Runtime.InteropServices;
 using SapNwRfc.Internal.Interop;
 
 namespace SapNwRfc
@@ -37,7 +38,7 @@ namespace SapNwRfc
                 errorInfo: out RfcErrorInfo errorInfo);
         }
 
-        private void ServerSessionChangeListener(IntPtr serverHandle, in RfcSessionChange sessionChange, in RfcErrorInfo errorInfo)
+        private void ServerSessionChangeListener(IntPtr serverHandle, in RfcSessionChange sessionChange)
         {
             if (sessionChange.Event == RfcSessionEvent.RFC_SESSION_CREATED)
             {
@@ -111,9 +112,9 @@ namespace SapNwRfc
             }
         }
 
-        private void ServerErrorListener(IntPtr serverHandle, in RfcAttributes clientInfo, in RfcErrorInfo errorInfo)
+        private void ServerErrorListener(IntPtr serverHandle, IntPtr clientInfo, in RfcErrorInfo errorInfo)
         {
-            _error?.Invoke(this, new SapServerErrorEventArgs(new SapAttributes(clientInfo), new SapErrorInfo(errorInfo)));
+            _error?.Invoke(this, new SapServerErrorEventArgs(clientInfo == IntPtr.Zero ? null : new SapAttributes(Marshal.PtrToStructure<RfcAttributes>(clientInfo)), new SapErrorInfo(errorInfo)));
         }
 
         private EventHandler<SapServerStateChangeEventArgs> _stateChange;

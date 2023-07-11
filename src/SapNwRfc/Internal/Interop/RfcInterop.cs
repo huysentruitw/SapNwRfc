@@ -332,10 +332,10 @@ namespace SapNwRfc.Internal.Interop
         public delegate RfcResultCode RfcFunctionDescriptionCallback(string functionName, RfcAttributes attributes, out IntPtr funcDescHandle);
 
         [UnmanagedFunctionPointer(CallingConvention.StdCall)]
-        public delegate void RfcServerSessionChangeListener(IntPtr serverHandle, in RfcSessionChange sessionChange, in RfcErrorInfo errorInfo);
+        public delegate void RfcServerSessionChangeListener(IntPtr serverHandle, in RfcSessionChange sessionChange);
 
         [UnmanagedFunctionPointer(CallingConvention.StdCall)]
-        public delegate void RfcServerErrorListener(IntPtr serverHandle, in RfcAttributes clientInfo, in RfcErrorInfo errorInfo);
+        public delegate void RfcServerErrorListener(IntPtr serverHandle, IntPtr clientInfo, in RfcErrorInfo errorInfo);
 
         [UnmanagedFunctionPointer(CallingConvention.StdCall)]
         public delegate void RfcServerStateChangeListener(IntPtr serverHandle, in RfcStateChange stateChange);
