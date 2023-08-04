@@ -27,6 +27,9 @@ namespace SapNwRfc.Internal.Fields
 
             resultCode.ThrowOnError(errorInfo);
 
+            // Clear the table content before adding more - these tables are re-used between calls
+            interop.DeleteAllRows(tableHandle, out errorInfo);
+
             foreach (TItem row in Value)
             {
                 IntPtr lineHandle = interop.AppendNewRow(tableHandle, out errorInfo);
