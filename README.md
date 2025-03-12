@@ -110,6 +110,18 @@ var result = someFunction.Invoke<SomeFunctionResult>(new SomeFunctionParameters
 // Do something with result.Abc
 ```
 
+### Call function with dynamic input and output parameters
+
+```csharp
+using var someFunction = connection.CreateFunction("BAPI_SOME_FUNCTION_NAME");
+var result = someFunction.Invoke<dynamic>(new
+{
+    SOME_FIELD = "Some value",
+});
+
+string abc = result.RES_ABC;
+```
+
 ### Define models with a nested structure
 
 ```csharp

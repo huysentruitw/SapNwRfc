@@ -1,5 +1,6 @@
 using System;
 using SapNwRfc.Internal;
+using SapNwRfc.Internal.Dynamic;
 using SapNwRfc.Internal.Interop;
 
 namespace SapNwRfc
@@ -96,6 +97,11 @@ namespace SapNwRfc
         {
             Invoke();
 
+            if (typeof(TOutput) == typeof(object))
+            {
+                return (TOutput)(object)new DynamicRfcFunction(_interop, _functionHandle, Metadata);
+            }
+
             return OutputMapper.Extract<TOutput>(_interop, _functionHandle);
         }
 
@@ -103,6 +109,11 @@ namespace SapNwRfc
         public TOutput Invoke<TOutput>(object input)
         {
             Invoke(input);
+
+            if (typeof(TOutput) == typeof(object))
+            {
+                return (TOutput)(object)new DynamicRfcFunction(_interop, _functionHandle, Metadata);
+            }
 
             return OutputMapper.Extract<TOutput>(_interop, _functionHandle);
         }
