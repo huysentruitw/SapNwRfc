@@ -1,8 +1,12 @@
+using System.Diagnostics.CodeAnalysis;
+
 namespace SapNwRfc
 {
     /// <summary>
     /// Represents the SAP RFC data types.
     /// </summary>
+    [SuppressMessage("ReSharper", "InconsistentNaming", Justification = "Should match SAP SDK")]
+    [SuppressMessage("ReSharper", "IdentifierTypo", Justification = "Should match SAP SDK")]
     public enum SapRfcType
     {
         RFCTYPE_CHAR = 0,

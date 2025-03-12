@@ -316,6 +316,12 @@ namespace SapNwRfc.Internal.Interop
             => RfcMoveToFirstRow(tableHandle, out errorInfo);
 
         [DllImport(SapNwRfcDllName)]
+        private static extern RfcResultCode RfcMoveTo(IntPtr tableHandle, uint index, out RfcErrorInfo errorInfo);
+
+        public virtual RfcResultCode MoveTo(IntPtr tableHandle, uint index, out RfcErrorInfo errorInfo)
+            => RfcMoveTo(tableHandle, index, out errorInfo);
+
+        [DllImport(SapNwRfcDllName)]
         private static extern IntPtr RfcAppendNewRow(IntPtr tableHandle, out RfcErrorInfo errorInfo);
 
         public virtual IntPtr AppendNewRow(IntPtr tableHandle, out RfcErrorInfo errorInfo)
@@ -329,10 +335,13 @@ namespace SapNwRfc.Internal.Interop
         public delegate RfcResultCode RfcServerFunction(IntPtr connectionHandle, IntPtr functionHandle, out RfcErrorInfo errorInfo);
 
         [UnmanagedFunctionPointer(CallingConvention.StdCall, CharSet = CharSet.Unicode)]
-        public delegate RfcResultCode RfcFunctionDescriptionCallback(string functionName, RfcAttributes attributes, ref IntPtr funcDescHandle);
+        public delegate RfcResultCode RfcFunctionDescriptionCallback(string functionName, RfcAttributes attributes, out IntPtr funcDescHandle);
 
         [UnmanagedFunctionPointer(CallingConvention.StdCall)]
-        public delegate void RfcServerErrorListener(IntPtr serverHandle, in RfcAttributes clientInfo, in RfcErrorInfo errorInfo);
+        public delegate void RfcServerSessionChangeListener(IntPtr serverHandle, in RfcSessionChange sessionChange);
+
+        [UnmanagedFunctionPointer(CallingConvention.StdCall)]
+        public delegate void RfcServerErrorListener(IntPtr serverHandle, IntPtr clientInfo, in RfcErrorInfo errorInfo);
 
         [UnmanagedFunctionPointer(CallingConvention.StdCall)]
         public delegate void RfcServerStateChangeListener(IntPtr serverHandle, in RfcStateChange stateChange);
@@ -366,6 +375,30 @@ namespace SapNwRfc.Internal.Interop
 
         public virtual RfcResultCode ShutdownServer(IntPtr rfcHandle, uint timeout, out RfcErrorInfo errorInfo)
             => RfcShutdownServer(rfcHandle, timeout, out errorInfo);
+
+        [DllImport(SapNwRfcDllName)]
+        private static extern RfcResultCode RfcGetServerAttributes(IntPtr rfcHandle, out RfcServerAttributes serverAttributes, out RfcErrorInfo errorInfo);
+
+        public virtual RfcResultCode GetServerAttributes(IntPtr rfcHandle, out RfcServerAttributes serverAttributes, out RfcErrorInfo errorInfo)
+            => RfcGetServerAttributes(rfcHandle, out serverAttributes, out errorInfo);
+
+        [DllImport(SapNwRfcDllName)]
+        private static extern RfcResultCode RfcGetServerContext(IntPtr rfcHandle, out RfcServerContext serverContext, out RfcErrorInfo errorInfo);
+
+        public virtual RfcResultCode GetServerContext(IntPtr rfcHandle, out RfcServerContext serverContext, out RfcErrorInfo errorInfo)
+            => RfcGetServerContext(rfcHandle, out serverContext, out errorInfo);
+
+        [DllImport(SapNwRfcDllName)]
+        private static extern RfcResultCode RfcSetServerStateful(IntPtr rfcHandle, uint isStateful, out RfcErrorInfo errorInfo);
+
+        public virtual RfcResultCode SetServerStateful(IntPtr rfcHandle, uint isStateful, out RfcErrorInfo errorInfo)
+            => RfcSetServerStateful(rfcHandle, isStateful, out errorInfo);
+
+        [DllImport(SapNwRfcDllName)]
+        private static extern RfcResultCode RfcAddServerSessionChangedListener(IntPtr rfcHandle, RfcServerSessionChangeListener sessionChangeListener, out RfcErrorInfo errorInfo);
+
+        public virtual RfcResultCode AddServerSessionChangedListener(IntPtr rfcHandle, RfcServerSessionChangeListener sessionChangeListener, out RfcErrorInfo errorInfo)
+            => RfcAddServerSessionChangedListener(rfcHandle, sessionChangeListener, out errorInfo);
 
         [DllImport(SapNwRfcDllName)]
         private static extern RfcResultCode RfcAddServerErrorListener(IntPtr rfcHandle, RfcServerErrorListener errorListener, out RfcErrorInfo errorInfo);

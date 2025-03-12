@@ -2,7 +2,7 @@
 
 [![Build status](https://github.com/huysentruitw/SapNwRfc/actions/workflows/build-test-publish.yml/badge.svg?branch=master)](https://github.com/huysentruitw/SapNwRfc/actions/workflows/build-test-publish.yml?query=branch%3Amaster)
 
-This cross-platform library allows you to call SAP NetWeaver RFC functions from .NET 5, .NET Core and the .NET Framework.
+This cross-platform library allows you to call SAP NetWeaver RFC functions from .NET 5+, .NET Core and the .NET Framework.
 
 The library is fully tested and production ready. Supported operating systems are Windows, Linux and macOS.
 
@@ -110,6 +110,18 @@ var result = someFunction.Invoke<SomeFunctionResult>(new SomeFunctionParameters
 // Do something with result.Abc
 ```
 
+### Call function with dynamic input and output parameters
+
+```csharp
+using var someFunction = connection.CreateFunction("BAPI_SOME_FUNCTION_NAME");
+var result = someFunction.Invoke<dynamic>(new
+{
+    SOME_FIELD = "Some value",
+});
+
+string abc = result.RES_ABC;
+```
+
 ### Define models with a nested structure
 
 ```csharp
@@ -151,6 +163,22 @@ class SomeFunctionResultItem
 }
 ```
 
+### Define models with an IEnumerable
+
+```csharp
+class SomeFunctionResult
+{
+    [SapName("RES_ITEMS")]
+    public IEnumerable<SomeFunctionResultItem> Items { get; set; }
+}
+
+class SomeFunctionResultItem
+{
+    [SapName("ITM_NAME")]
+    public string Name { get; set; }
+}
+```
+
 ### Exclude properties from mapping
 
 ```csharp
@@ -178,7 +206,20 @@ class SomeFunctionResult
 ```csharp
 string connectionString = "AppServerHost=MY_SERVER_HOST; SystemNumber=00; User=MY_SAP_USER; Password=SECRET; Client=100; Language=EN; PoolSize=5; Trace=8";
 
-SapServer.InstallGenericServerFunctionHandler(connectionString, (connection, function) =>
+SapServer.InstallGenericServerFunctionHandler((string functionName, SapAttributes attributes) =>
+{
+    using var connection = new SapConnection(connectionString);
+    connection.Connect();
+    return connection.GetFunctionMetadata(functionName);
+});
+```
+
+### RFC Server
+
+```csharp
+string connectionString = "GatewayHost=MY_GW_HOST; GatewayService=MY_GW_SERV; ProgramId=MY_PROGRAM_ID; RegistrationCount=1";
+
+using var server = SapServer.Create(connectionString, (ISapServerConnection connection, ISapServerFunction function) =>
 {
     var attributes = connection.GetAttributes();
 
@@ -190,14 +231,6 @@ SapServer.InstallGenericServerFunctionHandler(connectionString, (connection, fun
         break;
     }
 });
-```
-
-### RFC Server
-
-```csharp
-string connectionString = "GWHOST=MY_GW_HOST; GWSERV=MY_GW_SERV; PROGRAM_ID=MY_PROGRAM_ID; REG_COUNT=1";
-
-using var server = SapServer.Create(connectionString);
 server.Error += (object sender, SapServerErrorEventArgs args) => Console.WriteLine(args.Error.Message);
 server.StateChange += (object sender, SapServerStateChangeEventArgs args) => Console.WriteLine(args.OldState + " -> " + args.NewState);
 server.Launch();
@@ -320,19 +353,20 @@ For each input and output model type, the library builds and caches a mapping fu
 
 SAP RFC parameter types don't have to be specified as they're converted by convention. Here's an overview of supported type mappings:
 
-| C# type     | SAP RFC type                        | Remarks
-|:----------  |:----------------------------        |:---
-| `int`       | RFCTYPE_INT                         | 4-byte integer
-| `long`      | RFCTYPE_INT8                        | 8-byte integer
-| `double`    | RFCTYPE_FLOAT                       | Floating point, double precision
-| `decimal`   | RFCTYPE_BCD                         |
-| `string`    | RFCTYPE_STRING / RFCTYPE_CHAR / ... | Gets a data field as string 
-| `byte[]`    | RFCTYPE_BYTE                        | Raw binary data, fixed length. Has to be used in conjunction with the `[SapBufferLength]`-attribute
-| `char[]`    | RFCTYPE_CHAR                        | Char data, fixed length. Has to be used in conjunction with the `[SapBufferLength]`-attribute
-| `DateTime?` | RFCTYPE_DATE                        | Only the day, month and year value is used
-| `TimeSpan?` | RFCTYPE_TIME                        | Only the hour, minute and second value is used
-| `T`         | RFCTYPE_STRUCTURE                   | Structures are constructed from nested objects (T) in the input or output model (see [example](#define-models-with-a-nested-structure))
-| `Array<T>`  | RFCTYPE_TABLE                       | Tables are constructed from arrays of nested objects (T) in the input or output model (see [example](#define-models-with-a-nested-table))
+| C# type           | SAP RFC type                        | Remarks
+|:---------------   |:----------------------------        |:---
+| `int`             | RFCTYPE_INT                         | 4-byte integer
+| `long`            | RFCTYPE_INT8                        | 8-byte integer
+| `double`          | RFCTYPE_FLOAT                       | Floating point, double precision
+| `decimal`         | RFCTYPE_BCD                         |
+| `string`          | RFCTYPE_STRING / RFCTYPE_CHAR / ... | Gets a data field as string 
+| `byte[]`          | RFCTYPE_BYTE                        | Raw binary data, fixed length. Has to be used in conjunction with the `[SapBufferLength]`-attribute
+| `char[]`          | RFCTYPE_CHAR                        | Char data, fixed length. Has to be used in conjunction with the `[SapBufferLength]`-attribute
+| `DateTime?`       | RFCTYPE_DATE                        | Only the day, month and year value is used
+| `TimeSpan?`       | RFCTYPE_TIME                        | Only the hour, minute and second value is used
+| `T`               | RFCTYPE_STRUCTURE                   | Structures are constructed from nested objects (T) in the input or output model (see [example](#define-models-with-a-nested-structure))
+| `Array<T>`        | RFCTYPE_TABLE                       | Tables are constructed from arrays of nested objects (T) in the input or output model (see [example](#define-models-with-a-nested-table))
+| `IEnumerable<T>`  | RFCTYPE_TABLE                       | Tables returned as IEnumerable<T>. Yields elements one-by-one for better memory management when handling large datasets
 
 ## Connection pooling
 

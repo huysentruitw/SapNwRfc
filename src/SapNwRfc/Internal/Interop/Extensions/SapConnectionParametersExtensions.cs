@@ -14,8 +14,9 @@ namespace SapNwRfc.Internal.Interop
         public static RfcConnectionParameter[] ToInterop<TParameters>(this TParameters parameters)
             where TParameters : SapConnectionParameters
         {
+            // Use .GetType() here to support custom parameters in subclasses of <TParameters>
             (string Name, Func<object, string> GetValue)[] properties =
-                TypePropertiesCache.GetOrAdd(typeof(TParameters), Build);
+                TypePropertiesCache.GetOrAdd(parameters.GetType(), Build);
 
             return properties
                 .Select(property =>

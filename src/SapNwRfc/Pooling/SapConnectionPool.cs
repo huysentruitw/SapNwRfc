@@ -93,8 +93,10 @@ namespace SapNwRfc.Pooling
             if (_idleConnectionSemaphore.Wait(TimeSpan.Zero, cancellationToken))
             {
                 lock (_syncRoot)
+                {
                     if (_idleConnections.TryDequeue(out (ISapConnection Connection, DateTime ExpiresAtUtc) idleConnection))
                         return idleConnection.Connection;
+                }
             }
 
             while (true)
@@ -132,8 +134,10 @@ namespace SapNwRfc.Pooling
                 _idleConnectionSemaphore.Wait(cancellationToken);
 
                 lock (_syncRoot)
+                {
                     if (_idleConnections.TryDequeue(out (ISapConnection Connection, DateTime ExpiresAtUtc) idleConnection))
                         return idleConnection.Connection;
+                }
             }
         }
 

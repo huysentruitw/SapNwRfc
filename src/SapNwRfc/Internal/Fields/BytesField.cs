@@ -29,46 +29,42 @@ namespace SapNwRfc.Internal.Fields
 
         public static BytesField Extract(RfcInterop interop, IntPtr dataHandle, string name, int? bufferLength)
         {
-            uint xstringLength;
-            if (bufferLength == null)
-            {
-                RfcResultCode resultCode = interop.GetXString(
-                    dataHandle: dataHandle,
-                    name: name,
-                    bytesBuffer: Array.Empty<byte>(),
-                    bufferLength: 0,
-                    xstringLength: out xstringLength,
-                    errorInfo: out RfcErrorInfo errorInfo);
+            if (!bufferLength.HasValue)
+                bufferLength = GetBufferLength(interop, dataHandle, name);
 
-                if (resultCode != RfcResultCode.RFC_BUFFER_TOO_SMALL)
-                {
-                    resultCode.ThrowOnError(errorInfo);
-                }
-            }
-            else
-            {
-                xstringLength = (uint)bufferLength;
-            }
-
-            if (xstringLength == 0)
-            {
+            if (bufferLength.Value <= 0)
                 return new BytesField(name, Array.Empty<byte>());
-            }
-            else
+
+            var buffer = new byte[bufferLength.Value];
+            RfcResultCode resultCode = interop.GetXString(
+                dataHandle: dataHandle,
+                name: name,
+                bytesBuffer: buffer,
+                bufferLength: (uint)buffer.Length,
+                xstringLength: out _,
+                errorInfo: out RfcErrorInfo errorInfo);
+
+            resultCode.ThrowOnError(errorInfo);
+
+            return new BytesField(name, buffer);
+        }
+
+        private static int GetBufferLength(RfcInterop interop, IntPtr dataHandle, string name)
+        {
+            RfcResultCode resultCode = interop.GetXString(
+                dataHandle: dataHandle,
+                name: name,
+                bytesBuffer: Array.Empty<byte>(),
+                bufferLength: 0,
+                xstringLength: out uint bufferLength,
+                errorInfo: out RfcErrorInfo errorInfo);
+
+            if (resultCode != RfcResultCode.RFC_BUFFER_TOO_SMALL)
             {
-                var buffer = new byte[xstringLength];
-                RfcResultCode resultCode = interop.GetXString(
-                    dataHandle: dataHandle,
-                    name: name,
-                    bytesBuffer: buffer,
-                    bufferLength: (uint)buffer.Length,
-                    xstringLength: out _,
-                    errorInfo: out RfcErrorInfo errorInfo);
-
                 resultCode.ThrowOnError(errorInfo);
-
-                return new BytesField(name, buffer);
             }
+
+            return (int)bufferLength;
         }
 
         [ExcludeFromCodeCoverage]
