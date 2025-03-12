@@ -6,9 +6,9 @@ namespace SapNwRfc.Internal.Interop
     internal struct RfcStateChange
     {
         [MarshalAs(UnmanagedType.I4)]
-        public SapServerState OldState;
+        public SapRfcServerState OldState;
 
         [MarshalAs(UnmanagedType.I4)]
-        public SapServerState NewState;
+        public SapRfcServerState NewState;
     }
 }

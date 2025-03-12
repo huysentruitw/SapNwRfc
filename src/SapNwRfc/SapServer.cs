@@ -1,4 +1,7 @@
 using System;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.Runtime.InteropServices;
 using SapNwRfc.Internal.Interop;
 
 namespace SapNwRfc
@@ -11,35 +14,65 @@ namespace SapNwRfc
         private readonly RfcInterop _interop;
         private readonly IntPtr _rfcServerHandle;
         private readonly SapConnectionParameters _parameters;
+        private readonly Action<ISapServerConnection, ISapServerFunction> _action;
 
-        private SapServer(RfcInterop interop, IntPtr rfcServerHandle, SapConnectionParameters parameters)
+        // Keep a reference to the server function delegates so they don't get GCed
+        private readonly RfcInterop.RfcServerSessionChangeListener _serverSessionChangeListener;
+        private readonly RfcInterop.RfcServerErrorListener _serverErrorListener;
+        private readonly RfcInterop.RfcServerStateChangeListener _serverStateChangeListener;
+
+        private SapServer(RfcInterop interop, IntPtr rfcServerHandle, SapConnectionParameters parameters, Action<ISapServerConnection, ISapServerFunction> action)
         {
             _interop = interop;
             _rfcServerHandle = rfcServerHandle;
             _parameters = parameters;
+            _action = action;
+
+            _serverSessionChangeListener = ServerSessionChangeListener;
+            _serverErrorListener = ServerErrorListener;
+            _serverStateChangeListener = ServerStateChangeListener;
+
+            RfcResultCode resultCode = _interop.AddServerSessionChangedListener(
+                rfcHandle: rfcServerHandle,
+                sessionChangeListener: _serverSessionChangeListener,
+                errorInfo: out RfcErrorInfo errorInfo);
+        }
+
+        private void ServerSessionChangeListener(IntPtr serverHandle, in RfcSessionChange sessionChange)
+        {
+            if (sessionChange.Event == RfcSessionEvent.RFC_SESSION_CREATED)
+            {
+                Servers.TryAdd(sessionChange.SessionId, this);
+            }
+            else if (sessionChange.Event == RfcSessionEvent.RFC_SESSION_DESTROYED)
+            {
+                Servers.TryRemove(sessionChange.SessionId, out _);
+            }
         }
 
         /// <summary>
         /// Creates and connects a new RFC Server.
         /// </summary>
         /// <param name="connectionString">The connection string.</param>
+        /// <param name="action">The RFC server function handler.</param>
         /// <returns>The SAP RFC Server.</returns>
-        public static ISapServer Create(string connectionString)
+        public static ISapServer Create(string connectionString, Action<ISapServerConnection, ISapServerFunction> action)
         {
-            return Create(SapConnectionParameters.Parse(connectionString));
+            return Create(SapConnectionParameters.Parse(connectionString), action);
         }
 
         /// <summary>
         /// Creates and connects a new RFC Server.
         /// </summary>
         /// <param name="parameters">The connection parameters.</param>
+        /// <param name="action">The RFC server function handler.</param>
         /// <returns>The SAP RFC Server.</returns>
-        public static ISapServer Create(SapConnectionParameters parameters)
+        public static ISapServer Create(SapConnectionParameters parameters, Action<ISapServerConnection, ISapServerFunction> action)
         {
-            return Create(new RfcInterop(), parameters);
+            return Create(new RfcInterop(), parameters, action);
         }
 
-        private static ISapServer Create(RfcInterop rfcInterop, SapConnectionParameters parameters)
+        private static ISapServer Create(RfcInterop rfcInterop, SapConnectionParameters parameters, Action<ISapServerConnection, ISapServerFunction> action)
         {
             RfcConnectionParameter[] interopParameters = parameters.ToInterop();
 
@@ -50,7 +83,7 @@ namespace SapNwRfc
 
             errorInfo.ThrowOnError();
 
-            return new SapServer(rfcInterop, rfcServerHandle, parameters);
+            return new SapServer(rfcInterop, rfcServerHandle, parameters, action);
         }
 
         private EventHandler<SapServerErrorEventArgs> _error;
@@ -64,7 +97,7 @@ namespace SapNwRfc
                 {
                     RfcResultCode resultCode = _interop.AddServerErrorListener(
                         rfcHandle: _rfcServerHandle,
-                        errorListener: ServerErrorListener,
+                        errorListener: _serverErrorListener,
                         errorInfo: out RfcErrorInfo errorInfo);
 
                     resultCode.ThrowOnError(errorInfo);
@@ -79,9 +112,9 @@ namespace SapNwRfc
             }
         }
 
-        private void ServerErrorListener(IntPtr serverHandle, in RfcAttributes clientInfo, in RfcErrorInfo errorInfo)
+        private void ServerErrorListener(IntPtr serverHandle, IntPtr clientInfo, in RfcErrorInfo errorInfo)
         {
-            _error?.Invoke(this, new SapServerErrorEventArgs(new SapAttributes(clientInfo), new SapErrorInfo(errorInfo)));
+            _error?.Invoke(this, new SapServerErrorEventArgs(clientInfo == IntPtr.Zero ? null : new SapAttributes(Marshal.PtrToStructure<RfcAttributes>(clientInfo)), new SapErrorInfo(errorInfo)));
         }
 
         private EventHandler<SapServerStateChangeEventArgs> _stateChange;
@@ -95,7 +128,7 @@ namespace SapNwRfc
                 {
                     RfcResultCode resultCode = _interop.AddServerStateChangedListener(
                         rfcHandle: _rfcServerHandle,
-                        stateChangeListener: ServerStateChangeListener,
+                        stateChangeListener: _serverStateChangeListener,
                         errorInfo: out RfcErrorInfo errorInfo);
 
                     resultCode.ThrowOnError(errorInfo);
@@ -113,6 +146,19 @@ namespace SapNwRfc
         private void ServerStateChangeListener(IntPtr serverHandle, in RfcStateChange stateChange)
         {
             _stateChange?.Invoke(this, new SapServerStateChangeEventArgs(stateChange));
+        }
+
+        /// <inheritdoc cref="ISapServer"/>
+        public SapServerAttributes GetAttributes()
+        {
+            RfcResultCode resultCode = _interop.GetServerAttributes(
+                rfcHandle: _rfcServerHandle,
+                serverAttributes: out RfcServerAttributes serverAttributes,
+                errorInfo: out RfcErrorInfo errorInfo);
+
+            resultCode.ThrowOnError(errorInfo);
+
+            return new SapServerAttributes(serverAttributes);
         }
 
         /// <inheritdoc cref="ISapServer"/>
@@ -144,98 +190,153 @@ namespace SapNwRfc
             _interop.DestroyServer(
                 rfcHandle: _rfcServerHandle,
                 errorInfo: out RfcErrorInfo _);
+
+            foreach (KeyValuePair<string, SapServer> kv in Servers)
+            {
+                if (kv.Value == this)
+                {
+                    Servers.TryRemove(kv.Key, out _);
+                }
+            }
         }
 
         /// <summary>
         /// Installs a global server function handler.
         /// </summary>
-        /// <param name="connectionString">The connection string.</param>
-        /// <param name="action">The RFC server function handler.</param>
-        public static void InstallGenericServerFunctionHandler(string connectionString, Action<ISapServerConnection, ISapServerFunction> action)
+        /// <param name="getFunctionMetadata">The metadata handler.</param>
+        public static void InstallGenericServerFunctionHandler(Func<string, SapAttributes, ISapFunctionMetadata> getFunctionMetadata)
         {
-            InstallGenericServerFunctionHandler(SapConnectionParameters.Parse(connectionString), action);
+            InstallGenericServerFunctionHandler(new RfcInterop(), getFunctionMetadata);
         }
 
-        /// <summary>
-        /// Installs a global server function handler.
-        /// </summary>
-        /// <param name="parameters">The connection parameters.</param>
-        /// <param name="action">The RFC server function handler.</param>
-        public static void InstallGenericServerFunctionHandler(SapConnectionParameters parameters, Action<ISapServerConnection, ISapServerFunction> action)
+        private static readonly ConcurrentDictionary<string, SapServer> Servers = new ConcurrentDictionary<string, SapServer>();
+
+        // Keep a reference to the generic server function delegates so they don't get GCed
+        private static readonly RfcInterop.RfcServerFunction ServerFunction = HandleGenericFunction;
+        private static readonly RfcInterop.RfcFunctionDescriptionCallback GenericMetadata = HandleGenericMetadata;
+
+#pragma warning disable SA1306 // Field names should begin with lower-case letter
+        private static bool GenericServerFunctionHandlerInstalled;
+        private static (RfcInterop Interop, Func<string, SapAttributes, ISapFunctionMetadata> GetFunctionMetadata) GenericServerFunctionHandler;
+#pragma warning restore SA1306 // Field names should begin with lower-case letter
+
+        private static void InstallGenericServerFunctionHandler(RfcInterop interop, Func<string, SapAttributes, ISapFunctionMetadata> getFunctionMetadata)
         {
-            InstallGenericServerFunctionHandler(new RfcInterop(), parameters, action);
-        }
+            GenericServerFunctionHandler = (interop, getFunctionMetadata);
 
-        private static void InstallGenericServerFunctionHandler(RfcInterop interop, SapConnectionParameters parameters, Action<ISapServerConnection, ISapServerFunction> action)
-        {
-            RfcResultCode resultCode = interop.InstallGenericServerFunction(
-                serverFunction: (IntPtr connectionHandle, IntPtr functionHandle, out RfcErrorInfo errorInfo)
-                                    => HandleGenericFunction(interop, action, connectionHandle, functionHandle, out errorInfo),
-                funcDescPointer: (string functionName, RfcAttributes attributes, ref IntPtr funcDescHandle)
-                                    => HandleGenericMetadata(interop, parameters, functionName, out funcDescHandle),
-                out RfcErrorInfo installFunctionErrorInfo);
-
-            resultCode.ThrowOnError(installFunctionErrorInfo);
-        }
-
-        private static RfcResultCode HandleGenericFunction(RfcInterop interop, Action<ISapServerConnection, ISapServerFunction> action, IntPtr connectionHandle, IntPtr functionHandle, out RfcErrorInfo errorInfo)
-        {
-            IntPtr functionDesc = interop.DescribeFunction(
-                rfcHandle: functionHandle,
-                errorInfo: out RfcErrorInfo functionDescErrorInfo);
-
-            if (functionDescErrorInfo.Code != RfcResultCode.RFC_OK)
+            if (!GenericServerFunctionHandlerInstalled)
             {
-                errorInfo = functionDescErrorInfo;
-                return functionDescErrorInfo.Code;
+                RfcResultCode resultCode = interop.InstallGenericServerFunction(
+                    serverFunction: ServerFunction,
+                    funcDescPointer: GenericMetadata,
+                    out RfcErrorInfo installFunctionErrorInfo);
+
+                resultCode.ThrowOnError(installFunctionErrorInfo);
+
+                GenericServerFunctionHandlerInstalled = true;
             }
+        }
 
-            var connection = new SapServerConnection(interop, connectionHandle);
-            var function = new SapServerFunction(interop, functionHandle, functionDesc);
-
-            try
-            {
-                action(connection, function);
-
-                errorInfo = default;
-                return RfcResultCode.RFC_OK;
-            }
-            catch (Exception ex)
+        private static RfcResultCode HandleGenericFunction(IntPtr connectionHandle, IntPtr functionHandle, out RfcErrorInfo errorInfo)
+        {
+            (RfcInterop interop, _) = GenericServerFunctionHandler;
+            if (interop == null)
             {
                 errorInfo = new RfcErrorInfo
                 {
                     Code = RfcResultCode.RFC_EXTERNAL_FAILURE,
-                    Message = ex.Message,
                 };
                 return RfcResultCode.RFC_EXTERNAL_FAILURE;
             }
-        }
 
-        private static RfcResultCode HandleGenericMetadata(RfcInterop interop, SapConnectionParameters parameters, string functionName, out IntPtr funcDescHandle)
-        {
-            RfcConnectionParameter[] interopParameters = parameters.ToInterop();
+            RfcResultCode serverContextResultCode = interop.GetServerContext(
+                rfcHandle: connectionHandle,
+                serverContext: out RfcServerContext serverContext,
+                errorInfo: out RfcErrorInfo serverContextErrorInfo);
 
-            IntPtr connection = interop.OpenConnection(
-                connectionParams: interopParameters,
-                paramCount: (uint)interopParameters.Length,
-                errorInfo: out RfcErrorInfo connectionErrorInfo);
-
-            if (connectionErrorInfo.Code != RfcResultCode.RFC_OK)
+            if (serverContextResultCode != RfcResultCode.RFC_OK)
             {
-                funcDescHandle = IntPtr.Zero;
-                return connectionErrorInfo.Code;
+                errorInfo = serverContextErrorInfo;
+                return serverContextResultCode;
             }
 
-            funcDescHandle = interop.GetFunctionDesc(
-                rfcHandle: connection,
-                funcName: functionName,
-                errorInfo: out RfcErrorInfo errorInfo);
+            if (serverContext.IsStateful == 0)
+            {
+                RfcResultCode setServerStatefulResultCode = interop.SetServerStateful(
+                    rfcHandle: connectionHandle,
+                    isStateful: 1,
+                    errorInfo: out RfcErrorInfo setServerStatefulErrorInfo);
 
-            interop.CloseConnection(
-                rfcHandle: connection,
-                errorInfo: out RfcErrorInfo _);
+                if (setServerStatefulResultCode != RfcResultCode.RFC_OK)
+                {
+                    errorInfo = setServerStatefulErrorInfo;
+                    return setServerStatefulResultCode;
+                }
+            }
 
-            return errorInfo.Code;
+            if (Servers.TryGetValue(serverContext.SessionId, out SapServer sapServer))
+            {
+                IntPtr functionDesc = interop.DescribeFunction(
+                    rfcHandle: functionHandle,
+                    errorInfo: out RfcErrorInfo functionDescErrorInfo);
+
+                if (functionDescErrorInfo.Code != RfcResultCode.RFC_OK)
+                {
+                    errorInfo = functionDescErrorInfo;
+                    return functionDescErrorInfo.Code;
+                }
+
+                var connection = new SapServerConnection(interop, connectionHandle);
+                var function = new SapServerFunction(interop, functionHandle, functionDesc);
+
+                try
+                {
+                    sapServer._action(connection, function);
+
+                    errorInfo = default;
+                    return RfcResultCode.RFC_OK;
+                }
+                catch (Exception ex)
+                {
+                    errorInfo = new RfcErrorInfo
+                    {
+                        Code = RfcResultCode.RFC_EXTERNAL_FAILURE,
+                        Message = ex.Message,
+                    };
+                    return RfcResultCode.RFC_EXTERNAL_FAILURE;
+                }
+            }
+
+            errorInfo = new RfcErrorInfo
+            {
+                Code = RfcResultCode.RFC_NOT_FOUND,
+            };
+            return RfcResultCode.RFC_EXTERNAL_FAILURE;
+        }
+
+        private static RfcResultCode HandleGenericMetadata(string functionName, RfcAttributes attributes, out IntPtr funcDescHandle)
+        {
+            funcDescHandle = IntPtr.Zero;
+
+            (RfcInterop interop, Func<string, SapAttributes, ISapFunctionMetadata> getFunctionMetadata) = GenericServerFunctionHandler;
+            if (interop == null || getFunctionMetadata == null)
+                return RfcResultCode.RFC_NOT_FOUND;
+
+            try
+            {
+                ISapFunctionMetadata functionMetadata = getFunctionMetadata(functionName, new SapAttributes(attributes));
+
+                if (functionMetadata is SapFunctionMetadata sapFunctionMetadata)
+                {
+                    funcDescHandle = sapFunctionMetadata.GetFunctionDescHandle();
+                }
+            }
+            catch
+            {
+                return RfcResultCode.RFC_EXTERNAL_FAILURE;
+            }
+
+            return funcDescHandle == IntPtr.Zero ? RfcResultCode.RFC_NOT_FOUND : RfcResultCode.RFC_OK;
         }
     }
 }

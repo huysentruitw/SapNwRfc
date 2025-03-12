@@ -3,7 +3,7 @@ namespace SapNwRfc
     /// <summary>
     /// Represents the SAP RFC server states.
     /// </summary>
-    public enum SapServerState
+    public enum SapRfcServerState
     {
         RFC_SERVER_INITIAL,
         RFC_SERVER_STARTING,

@@ -18,6 +18,12 @@ namespace SapNwRfc
         event EventHandler<SapServerStateChangeEventArgs> StateChange;
 
         /// <summary>
+        /// Gets the server attributes.
+        /// </summary>
+        /// <returns>The server attributes.</returns>
+        SapServerAttributes GetAttributes();
+
+        /// <summary>
         /// Launches the server.
         /// </summary>
         void Launch();

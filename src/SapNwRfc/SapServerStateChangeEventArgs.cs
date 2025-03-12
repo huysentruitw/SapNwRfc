@@ -17,11 +17,11 @@ namespace SapNwRfc
         /// <summary>
         /// Gets the old server state.
         /// </summary>
-        public SapServerState OldState { get; }
+        public SapRfcServerState OldState { get; }
 
         /// <summary>
         /// Gets the new server state.
         /// </summary>
-        public SapServerState NewState { get; }
+        public SapRfcServerState NewState { get; }
     }
 }
