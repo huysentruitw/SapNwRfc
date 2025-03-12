@@ -202,9 +202,14 @@ namespace SapNwRfc.Tests.Pooling
                 connectionFactory: connectionFactoryMock.Object);
 
             // Act
-            Task.Run(() => pool.GetConnection());
-            Thread.Sleep(100); // Wait a bit so the code in Task.Run picks the first connection
+            var taskTookConnection = new ManualResetEventSlim();
+            Task.Run(() =>
+            {
+                pool.GetConnection();
+                taskTookConnection.Set();
+            });
             Action action = () => pool.GetConnection();
+            taskTookConnection.Wait(TimeSpan.FromSeconds(2));
 
             // Assert
             action.ExecutionTime().Should().BeLessThan(500.Milliseconds());
@@ -223,12 +228,15 @@ namespace SapNwRfc.Tests.Pooling
             ISapConnection connection2 = null;
 
             // Act
+            var taskStarted = new ManualResetEventSlim();
             Task.Run(() =>
             {
+                taskStarted.Set();
                 Thread.Sleep(150);
                 pool.ReturnConnection(connection1);
             });
             Action action = () => connection2 = pool.GetConnection();
+            taskStarted.Wait();
 
             // Assert
             ExecutionTime executionTime = action.ExecutionTime();
@@ -252,14 +260,17 @@ namespace SapNwRfc.Tests.Pooling
             ISapConnection connection3 = null;
 
             // Act
+            var taskStarted = new ManualResetEventSlim();
             Task.Run(() =>
             {
+                taskStarted.Set();
                 Thread.Sleep(150);
                 pool.ReturnConnection(connection1);
                 Thread.Sleep(150);
                 pool.ReturnConnection(connection2);
             });
             Action action = () => connection3 = pool.GetConnection();
+            taskStarted.Wait();
 
             // Assert
             ExecutionTime executionTime = action.ExecutionTime();
@@ -282,12 +293,15 @@ namespace SapNwRfc.Tests.Pooling
             ISapConnection connection2 = null;
 
             // Act
+            var taskStarted = new ManualResetEventSlim();
             Task.Run(() =>
             {
+                taskStarted.Set();
                 Thread.Sleep(150);
                 pool.ForgetConnection(connection1);
             });
             Action action = () => connection2 = pool.GetConnection();
+            taskStarted.Wait();
 
             // Assert
             ExecutionTime executionTime = action.ExecutionTime();
