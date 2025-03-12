@@ -15,12 +15,9 @@ namespace SapNwRfc.Pooling
         private readonly int _poolSize;
         private readonly Func<SapConnectionParameters, ISapConnection> _connectionFactory;
         private readonly TimeSpan _connectionIdleTimeout;
-        private readonly object _syncRoot = new object();
         private readonly ConcurrentQueue<(ISapConnection Connection, DateTime ExpiresAtUtc)> _idleConnections = new ConcurrentQueue<(ISapConnection Connection, DateTime ExpiresAtUtc)>();
-        private readonly SemaphoreSlim _idleConnectionSemaphore = new SemaphoreSlim(0);
+        private readonly SemaphoreSlim _leases;
         private readonly Timer _timer;
-
-        private int _openConnectionCount = 0;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="SapConnectionPool"/> class.
@@ -68,6 +65,7 @@ namespace SapNwRfc.Pooling
             _poolSize = poolSize;
             _connectionIdleTimeout = connectionIdleTimeout ?? TimeSpan.FromSeconds(30);
             _connectionFactory = connectionFactory ?? (parameters => new SapConnection(parameters));
+            _leases = new SemaphoreSlim(poolSize, poolSize);
             _timer = new Timer(
                 callback: _ => DisposeIdleConnections(),
                 state: null,
@@ -80,6 +78,7 @@ namespace SapNwRfc.Pooling
         /// </summary>
         public void Dispose()
         {
+            _leases.Dispose();
             _timer.Dispose();
             while (_idleConnections.TryDequeue(out (ISapConnection Connection, DateTime ExpiresAtUtc) idleConnection))
                 idleConnection.Connection.Dispose();
@@ -89,102 +88,70 @@ namespace SapNwRfc.Pooling
         [SuppressMessage("ReSharper", "InvertIf", Justification = "Don't change double-checked lock")]
         public ISapConnection GetConnection(CancellationToken cancellationToken = default)
         {
-            // See if there is an idling connection available, but don't wait for it
-            if (_idleConnectionSemaphore.Wait(TimeSpan.Zero, cancellationToken))
+            _leases.Wait(cancellationToken);
+
+            while (_idleConnections.TryDequeue(out (ISapConnection Connection, DateTime ExpiresAtUtc) idleConnection))
             {
-                lock (_syncRoot)
-                {
-                    if (_idleConnections.TryDequeue(out (ISapConnection Connection, DateTime ExpiresAtUtc) idleConnection))
-                        return idleConnection.Connection;
-                }
+                if (idleConnection.ExpiresAtUtc > DateTime.UtcNow)
+                    return idleConnection.Connection;
+
+                idleConnection.Connection.Dispose();
             }
 
-            while (true)
+            ISapConnection connection = _connectionFactory(_connectionParameters);
+
+            if (connection == null)
             {
-                if (_openConnectionCount < _poolSize)
-                {
-                    ISapConnection connection = null;
-
-                    lock (_syncRoot)
-                    {
-                        if (_openConnectionCount < _poolSize)
-                        {
-                            connection = _connectionFactory(_connectionParameters)
-                                ?? throw new InvalidOperationException("The connection factory should never return null");
-                            _openConnectionCount++;
-                        }
-                    }
-
-                    if (connection != null)
-                    {
-                        try
-                        {
-                            connection.Connect();
-                        }
-                        catch
-                        {
-                            ForgetConnection(connection);
-                            throw;
-                        }
-
-                        return connection;
-                    }
-                }
-
-                _idleConnectionSemaphore.Wait(cancellationToken);
-
-                lock (_syncRoot)
-                {
-                    if (_idleConnections.TryDequeue(out (ISapConnection Connection, DateTime ExpiresAtUtc) idleConnection))
-                        return idleConnection.Connection;
-                }
+                _leases.Release();
+                throw new InvalidOperationException("The connection factory should never return null");
             }
+
+            try
+            {
+                connection.Connect();
+            }
+            catch
+            {
+                ForgetConnection(connection);
+                throw;
+            }
+
+            return connection;
         }
 
         /// <inheritdoc cref="ISapConnectionPool"/>
         public void ReturnConnection(ISapConnection connection)
         {
-            DateTime expiresAtUtc = DateTime.UtcNow + _connectionIdleTimeout;
-            _idleConnections.Enqueue((Connection: connection, ExpiresAtUtc: expiresAtUtc));
-            _idleConnectionSemaphore.Release();
+            _ = connection ?? throw new ArgumentNullException(nameof(connection));
+            if (_idleConnections.Count < _poolSize)
+            {
+                DateTime expiresAtUtc = DateTime.UtcNow + _connectionIdleTimeout;
+                _idleConnections.Enqueue((Connection: connection, ExpiresAtUtc: expiresAtUtc));
+            }
+            else
+            {
+                connection.Dispose();
+            }
+
+            _leases.Release();
         }
 
         /// <inheritdoc cref="ISapConnectionPool"/>
         public void ForgetConnection(ISapConnection connection)
         {
+            _ = connection ?? throw new ArgumentNullException(nameof(connection));
             connection.Dispose();
-            lock (_syncRoot) _openConnectionCount--;
-            _idleConnectionSemaphore.Release();
+            _leases.Release();
         }
 
         [SuppressMessage("ReSharper", "InvertIf", Justification = "Don't change double-checked lock")]
         private void DisposeIdleConnections()
         {
-            while (true)
+            while (_idleConnections.TryPeek(out (ISapConnection Connection, DateTime ExpiresAtUtc) idleConnection)
+                   && idleConnection.ExpiresAtUtc <= DateTime.UtcNow)
             {
-                // The first connection in the queue is the one that has been idling the longest.
-                // So, when the first connection did not expire, the rest didn't expire too.
-                if (!_idleConnections.TryPeek(out (ISapConnection Connection, DateTime ExpiresAtUtc) idleConnection) ||
-                    idleConnection.ExpiresAtUtc > DateTime.UtcNow)
-                    break;
-
-                lock (_syncRoot)
-                {
-                    if (!_idleConnections.TryPeek(out idleConnection) || idleConnection.ExpiresAtUtc > DateTime.UtcNow)
-                        break;
-
-                    // Remove idling connection from queue
-                    _idleConnections.TryDequeue(out _);
-
-                    // Decrease semaphore count as we removed an idling connection
-                    _idleConnectionSemaphore.Wait();
-
-                    // Dispose the idling connection
+                if (_idleConnections.TryDequeue(out idleConnection))
                     idleConnection.Connection.Dispose();
-
-                    Debug.Assert(_openConnectionCount > 0, "Open connection count must be greater than 0");
-                    _openConnectionCount--;
-                }
             }
         }
     }
