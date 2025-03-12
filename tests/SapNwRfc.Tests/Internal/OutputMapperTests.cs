@@ -361,7 +361,7 @@ namespace SapNwRfc.Tests.Internal
             // Assert
             _interopMock.Verify(
                 x => x.GetChars(DataHandle, "CHARSVALUE", Array.Empty<char>(), 0, out errorInfo),
-                Times.Never);
+                Times.Once);
             result.Should().NotBeNull();
             result.CharsValue.Should().BeEmpty();
         }

@@ -2,7 +2,7 @@
 
 [![Build status](https://github.com/huysentruitw/SapNwRfc/actions/workflows/build-test-publish.yml/badge.svg?branch=master)](https://github.com/huysentruitw/SapNwRfc/actions/workflows/build-test-publish.yml?query=branch%3Amaster)
 
-This cross-platform library allows you to call SAP NetWeaver RFC functions from .NET 5, .NET Core and the .NET Framework.
+This cross-platform library allows you to call SAP NetWeaver RFC functions from .NET 5+, .NET Core and the .NET Framework.
 
 The library is fully tested and production ready. Supported operating systems are Windows, Linux and macOS.
 

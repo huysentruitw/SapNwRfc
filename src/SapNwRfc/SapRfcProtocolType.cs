@@ -1,8 +1,12 @@
+using System.Diagnostics.CodeAnalysis;
+
 namespace SapNwRfc
 {
     /// <summary>
     /// Represents the SAP RFC server protocol.
     /// </summary>
+    [SuppressMessage("ReSharper", "InconsistentNaming", Justification = "Should match SAP SDK")]
+    [SuppressMessage("ReSharper", "IdentifierTypo", Justification = "Should match SAP SDK")]
     public enum SapRfcProtocolType
     {
         RFC_UNKOWN,
