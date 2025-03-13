@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>net472;net8</TargetFrameworks>
+    <TargetFramework>net8</TargetFramework>
     <IsPackable>false</IsPackable>
     <CodeAnalysisRuleSet>..\..\ca.ruleset</CodeAnalysisRuleSet>
     <SignAssembly>true</SignAssembly>
@@ -32,10 +32,6 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-  </ItemGroup>
-
-  <ItemGroup Condition="'$(TargetFramework)' == 'net472'">
-    <Reference Include="Microsoft.CSharp" />
   </ItemGroup>
 
   <ItemGroup>
