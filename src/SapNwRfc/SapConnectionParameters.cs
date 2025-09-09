@@ -24,6 +24,12 @@ namespace SapNwRfc
         public string SncLibraryPath { get; set; }
 
         /// <summary>
+        /// Gets or sets the SNC SSO parameter.
+        /// </summary>
+        [SapName("SNC_SSO")]
+        public string SncSso { get; set; }
+
+        /// <summary>
         /// Gets or sets the SNC QOP parameter.
         /// </summary>
         [SapName("SNC_QOP")]
