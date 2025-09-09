@@ -307,6 +307,7 @@ namespace SapNwRfc.Tests.Internal
             InputMapper.Apply(_interopMock.Object, DataHandle, model);
 
             // Assert
+            _interopMock.Verify(x => x.DeleteAllRows(tableHandle, out errorInfo));
             _interopMock.Verify(x => x.AppendNewRow(tableHandle, out errorInfo), Times.Exactly(numberOfRows));
             foreach (ArrayElement element in model.SomeArray)
             {
@@ -363,6 +364,7 @@ namespace SapNwRfc.Tests.Internal
             InputMapper.Apply(_interopMock.Object, DataHandle, model);
 
             // Assert
+            _interopMock.Verify(x => x.DeleteAllRows(tableHandle, out errorInfo));
             _interopMock.Verify(x => x.AppendNewRow(tableHandle, out errorInfo), Times.Exactly(numberOfRows));
             foreach (EnumerableElement element in model.SomeEnumerable)
             {
