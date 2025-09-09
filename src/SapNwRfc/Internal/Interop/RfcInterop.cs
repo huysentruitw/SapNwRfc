@@ -327,6 +327,12 @@ namespace SapNwRfc.Internal.Interop
         public virtual IntPtr AppendNewRow(IntPtr tableHandle, out RfcErrorInfo errorInfo)
             => RfcAppendNewRow(tableHandle, out errorInfo);
 
+        [DllImport(SapNwRfcDllName)]
+        private static extern RfcResultCode RfcDeleteAllRows(IntPtr tableHandle, out RfcErrorInfo errorInfo);
+
+        public virtual RfcResultCode DeleteAllRows(IntPtr tableHandle, out RfcErrorInfo errorInfo)
+            => RfcDeleteAllRows(tableHandle, out errorInfo);
+
         #endregion
 
         #region Server
