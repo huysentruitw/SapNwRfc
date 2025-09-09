@@ -42,6 +42,20 @@ namespace SapNwRfc.Tests
         }
 
         [Fact]
+        public void Parse_ShouldSupportEqualSignInPassword_Issue96()
+        {
+            // Arrange
+            const string connectionString = "Password=my=password";
+
+            // Act
+            var parameters = SapConnectionParameters.Parse(connectionString);
+
+            // Assert
+            parameters.Should().NotBeNull();
+            parameters.Password.Should().Be("my=password");
+        }
+
+        [Fact]
         public void Parse_AllProperties()
         {
             // Arrange

@@ -311,7 +311,7 @@ namespace SapNwRfc
 
             IReadOnlyDictionary<string, string> parts = connectionString
                 .Split(new[] { ';' }, StringSplitOptions.RemoveEmptyEntries)
-                .Select(entry => Regex.Match(entry, @"^\s*(?<key>\S+)\s*=\s*(?<value>\S+)\s*$"))
+                .Select(entry => Regex.Match(entry, @"^\s*(?<key>[^\s=]+)\s*=\s*(?<value>\S+)\s*$"))
                 .Where(match => match.Success)
                 .ToDictionary(match => match.Groups["key"].Value, match => match.Groups["value"].Value);
 
