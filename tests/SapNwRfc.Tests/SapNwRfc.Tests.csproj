@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>net472;net8</TargetFrameworks>
+    <TargetFrameworks>net472;net9</TargetFrameworks>
     <IsPackable>false</IsPackable>
     <CodeAnalysisRuleSet>..\..\ca.ruleset</CodeAnalysisRuleSet>
     <SignAssembly>true</SignAssembly>
