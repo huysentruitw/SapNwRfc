@@ -11,6 +11,7 @@ namespace SapNwRfc.Pooling
     /// </summary>
     public sealed class SapConnectionPool : ISapConnectionPool
     {
+        public const int DefaultPoolSize = 5;
         private readonly SapConnectionParameters _connectionParameters;
         private readonly int _poolSize;
         private readonly Func<SapConnectionParameters, ISapConnection> _connectionFactory;
@@ -30,7 +31,7 @@ namespace SapNwRfc.Pooling
         [SuppressMessage("ReSharper", "RedundantOverload.Global", Justification = "Public constructor should not expose connection factory")]
         public SapConnectionPool(
             string connectionString,
-            int poolSize = 5,
+            int poolSize = DefaultPoolSize,
             TimeSpan? connectionIdleTimeout = null,
             TimeSpan? idleDetectionInterval = null)
             : this(SapConnectionParameters.Parse(connectionString), poolSize, connectionIdleTimeout, idleDetectionInterval, null)
@@ -47,7 +48,7 @@ namespace SapNwRfc.Pooling
         [ExcludeFromCodeCoverage]
         public SapConnectionPool(
             SapConnectionParameters connectionParameters,
-            int poolSize = 5,
+            int poolSize = DefaultPoolSize,
             TimeSpan? connectionIdleTimeout = null,
             TimeSpan? idleDetectionInterval = null)
             : this(connectionParameters, poolSize, connectionIdleTimeout, idleDetectionInterval, null)
@@ -56,13 +57,15 @@ namespace SapNwRfc.Pooling
 
         internal SapConnectionPool(
             SapConnectionParameters connectionParameters,
-            int poolSize = 5,
+            int poolSize = DefaultPoolSize,
             TimeSpan? connectionIdleTimeout = null,
             TimeSpan? idleDetectionInterval = null,
             Func<SapConnectionParameters, ISapConnection> connectionFactory = null)
         {
             _connectionParameters = connectionParameters;
-            _poolSize = poolSize;
+            /* fallback to  connection string if pool size not specified*/
+            var poolSizeFromConnectionString = int.TryParse(_connectionParameters.PoolSize ?? _connectionParameters.MaxPoolSize ?? "0", out int parsedPoolSize) ? parsedPoolSize : 0;
+            _poolSize = poolSize != DefaultPoolSize && poolSizeFromConnectionString == 0 ? poolSize : poolSizeFromConnectionString;
             _connectionIdleTimeout = connectionIdleTimeout ?? TimeSpan.FromSeconds(30);
             _connectionFactory = connectionFactory ?? (parameters => new SapConnection(parameters));
             _leases = new SemaphoreSlim(poolSize, poolSize);
