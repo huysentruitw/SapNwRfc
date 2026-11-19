@@ -11,7 +11,7 @@ namespace SapNwRfc.Pooling
     /// </summary>
     public sealed class SapConnectionPool : ISapConnectionPool
     {
-        private readonly SapConnectionParameters _connectionParameters;
+        private readonly Func<SapConnectionParameters> _connectionParametersFactory;
         private readonly int _poolSize;
         private readonly Func<SapConnectionParameters, ISapConnection> _connectionFactory;
         private readonly TimeSpan _connectionIdleTimeout;
@@ -54,14 +54,43 @@ namespace SapNwRfc.Pooling
         {
         }
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="SapConnectionPool"/> class that asks for the connection parameters
+        /// each time it opens a new connection - for parameters that change over time, like a short-lived logon
+        /// certificate (<see cref="SapConnectionParameters.X509Certificate"/>) or ticket.
+        /// </summary>
+        /// <param name="connectionParametersFactory">Returns the parameters for a new connection; called once per connection the pool opens.</param>
+        /// <param name="poolSize">The size of the pool.</param>
+        /// <param name="connectionIdleTimeout">The idle timeout after which unused open connections are disposed. Defaults to 30 seconds.</param>
+        /// <param name="idleDetectionInterval">The interval at which to look for idling connections. Defaults to 1 second.</param>
+        [ExcludeFromCodeCoverage]
+        public SapConnectionPool(
+            Func<SapConnectionParameters> connectionParametersFactory,
+            int poolSize = 5,
+            TimeSpan? connectionIdleTimeout = null,
+            TimeSpan? idleDetectionInterval = null)
+            : this(connectionParametersFactory, poolSize, connectionIdleTimeout, idleDetectionInterval, null)
+        {
+        }
+
         internal SapConnectionPool(
             SapConnectionParameters connectionParameters,
             int poolSize = 5,
             TimeSpan? connectionIdleTimeout = null,
             TimeSpan? idleDetectionInterval = null,
             Func<SapConnectionParameters, ISapConnection> connectionFactory = null)
+            : this(() => connectionParameters, poolSize, connectionIdleTimeout, idleDetectionInterval, connectionFactory)
         {
-            _connectionParameters = connectionParameters;
+        }
+
+        internal SapConnectionPool(
+            Func<SapConnectionParameters> connectionParametersFactory,
+            int poolSize = 5,
+            TimeSpan? connectionIdleTimeout = null,
+            TimeSpan? idleDetectionInterval = null,
+            Func<SapConnectionParameters, ISapConnection> connectionFactory = null)
+        {
+            _connectionParametersFactory = connectionParametersFactory ?? throw new ArgumentNullException(nameof(connectionParametersFactory));
             _poolSize = poolSize;
             _connectionIdleTimeout = connectionIdleTimeout ?? TimeSpan.FromSeconds(30);
             _connectionFactory = connectionFactory ?? (parameters => new SapConnection(parameters));
@@ -98,7 +127,16 @@ namespace SapNwRfc.Pooling
                 idleConnection.Connection.Dispose();
             }
 
-            ISapConnection connection = _connectionFactory(_connectionParameters);
+            ISapConnection connection;
+            try
+            {
+                connection = _connectionFactory(_connectionParametersFactory());
+            }
+            catch
+            {
+                _leases.Release();
+                throw;
+            }
 
             if (connection == null)
             {

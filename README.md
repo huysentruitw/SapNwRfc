@@ -376,6 +376,26 @@ For more complex applications that require concurrency, connection pooling and r
 
 See the [`SapConnectionPool`](/src/SapNwRfc/Pooling/SapConnectionPool.cs) class for configuration options. 
 
+### Connection parameters that change over time
+
+Some logon data must not be reused for every connection, for example a short-lived X.509 logon certificate
+(`X509Certificate`, passed as `X509CERT` over SNC) or a logon ticket (`SapSso2Ticket`). Pass a factory instead of
+fixed parameters, and the pool asks it for the parameters each time it opens a new connection (idle connections it
+reuses keep the parameters they were opened with):
+
+```csharp
+var pool = new SapConnectionPool(() => new SapConnectionParameters
+{
+    AppServerHost = "MY_SERVER_HOST",
+    SystemNumber = "00",
+    Client = "100",
+    SncMode = "1",
+    SncMyName = "p:CN=my-client",
+    SncPartnerName = "p:CN=MY_SERVER_HOST",
+    X509Certificate = CreateShortLivedCertificate(), // a new certificate per connection
+});
+```
+
 ### Connection pooling in ASP.NET Core application
 
 #### Register pool and pooled connection
