@@ -26,6 +26,49 @@ namespace SapNwRfc.Tests.Pooling
         }
 
         [Fact]
+        public void GetConnection_WithParametersFactory_ShouldAskForParametersPerNewConnection()
+        {
+            // Arrange
+            int calls = 0;
+            var pool = new SapConnectionPool(
+                () => new SapConnectionParameters { X509Certificate = "certificate" + ++calls },
+                poolSize: 2,
+                connectionFactory: parameters => Mock.Of<ISapConnection>(x => x.ToString() == parameters.X509Certificate));
+
+            // Act
+            ISapConnection connection1 = pool.GetConnection();
+            ISapConnection connection2 = pool.GetConnection();
+            pool.ReturnConnection(connection1);
+            ISapConnection reused = pool.GetConnection();
+
+            // Assert
+            connection1.ToString().Should().Be("certificate1");
+            connection2.ToString().Should().Be("certificate2");
+            reused.Should().Be(connection1);
+            calls.Should().Be(2);
+        }
+
+        [Fact]
+        public void GetConnection_WhenParametersFactoryThrows_ShouldReleaseLease()
+        {
+            // Arrange
+            bool fail = true;
+            var pool = new SapConnectionPool(
+                () => fail ? throw new InvalidOperationException("no certificate") : new SapConnectionParameters(),
+                poolSize: 1,
+                connectionFactory: _ => Mock.Of<ISapConnection>());
+
+            // Act
+            Action first = () => pool.GetConnection();
+            first.Should().Throw<InvalidOperationException>();
+            fail = false;
+            ISapConnection connection = pool.GetConnection(new CancellationTokenSource(1.Seconds()).Token);
+
+            // Assert
+            connection.Should().NotBeNull();
+        }
+
+        [Fact]
         public void GetConnection_ShouldOpenConnection()
         {
             // Arrange
